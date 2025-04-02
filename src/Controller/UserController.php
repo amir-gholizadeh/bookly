@@ -28,6 +28,12 @@ class UserController extends AbstractController
     #[Route('/register', name: 'app_register')]
     public function register(Request $request, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager, SluggerInterface $slugger, Security $security): Response
     {
+        if ($this->getUser()) {
+            $this->addFlash('info', 'Hi '.$this->getUser()->getName().'. You are already logged in. Please logout first.');
+
+            return $this->redirectToRoute('main');
+        }
+
         $user = new User();
         $form = $this->createForm(RegistrationFormType::class, $user);
         $form->handleRequest($request);
@@ -65,7 +71,6 @@ class UserController extends AbstractController
 
             // Log in the user manually
             $security->login($user);
-            //            return $this->redirectToRoute('main');
         }
 
         return $this->render('main/register.html.twig', [
@@ -76,28 +81,17 @@ class UserController extends AbstractController
     #[Route('/login', name: 'app_login')]
     public function login(Request $request, AuthenticationUtils $authenticationUtils): Response
     {
+        if ($this->getUser()) {
+            $this->addFlash('info', 'Hi '.$this->getUser()->getName().'. You are already logged in. Please logout first.');
+
+            return $this->redirectToRoute('main');
+        }
+
         // Get the login error if there is one
         $error = $authenticationUtils->getLastAuthenticationError();
 
         $form = $this->createForm(LoginFormType::class);
         $form->handleRequest($request);
-
-        // Debugging: Check if the form is submitted and valid
-//        if ($form->isSubmitted()) {
-//            error_log('Form is submitted.');
-//            if ($form->isValid()) {
-//                error_log('Form is valid.');
-//                $credentials = $form->getData();
-//                error_log('Form data: '.json_encode($credentials));
-//            } else {
-//                error_log('Form is not valid.');
-//                error_log('Form errors: '.json_encode($form->getErrors(true, false)));
-//            }
-//        } else {
-//            error_log('Form is not submitted.');
-//        }
-
-//        error_log('Request parameters: '.json_encode($request->request->all()));
 
         return $this->render('main/login.html.twig', [
             'loginForm' => $form->createView(),
