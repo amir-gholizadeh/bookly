@@ -1,0 +1,54 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<div class="container">
+{#    {{ dump(app.flashes) }}#}
+    {% for label, messages in app.flashes %}
+        <div class="alert alert-{{ label }}">
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        </div>
+    {% endfor %}
+    <h1>Register</h1>
+    {{ form_start(registrationForm, {'attr': {'class': 'row g-3'}}) }}
+
+    <div class="col-md-6">
+        {{ form_label(registrationForm.email, 'Email', {'label_attr': {'class': 'form-label'}}) }}
+        {{ form_widget(registrationForm.email, {'attr': {'class': 'form-control', 'id': 'inputEmail4'}}) }}
+    </div>
+
+    <div class="col-md-6">
+        {{ form_label(registrationForm.plainPassword.first, 'Password', {'label_attr': {'class': 'form-label'}}) }}
+        {{ form_widget(registrationForm.plainPassword.first, {'attr': {'class': 'form-control', 'id': 'inputPassword4'}}) }}
+    </div>
+
+    <div class="col-md-6">
+        {{ form_label(registrationForm.plainPassword.second, 'Repeat Password', {'label_attr': {'class': 'form-label'}}) }}
+        {{ form_widget(registrationForm.plainPassword.second, {'attr': {'class': 'form-control', 'id': 'inputPassword4'}}) }}
+    </div>
+
+    <div class="col-12">
+        {{ form_label(registrationForm.name, 'Name', {'label_attr': {'class': 'form-label'}}) }}
+        {{ form_widget(registrationForm.name, {'attr': {'class': 'form-control', 'id': 'inputName'}}) }}
+    </div>
+
+    <div class="col-12">
+        {{ form_label(registrationForm.profilePicturePath, 'Profile Picture', {'label_attr': {'class': 'form-label'}}) }}
+        {{ form_widget(registrationForm.profilePicturePath, {'attr': {'class': 'form-control', 'id': 'inputProfilePicture'}}) }}
+    </div>
+
+    <div class="col-12">
+        <div class="form-check">
+            {{ form_widget(registrationForm.isHuman, {'attr': {'class': 'form-check-input', 'id': 'gridCheck'}}) }}
+            {{ form_label(registrationForm.isHuman, 'I am not a robot', {'label_attr': {'class': 'form-check-label'}}) }}
+        </div>
+    </div>
+
+    <div class="col-12">
+        <button type="submit" class="btn btn-primary">Register</button>
+    </div>
+
+    {{ form_end(registrationForm) }}
+</div>
+{% endblock %}
