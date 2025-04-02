@@ -6,9 +6,14 @@ use App\Entity\User;
 use App\Form\LoginFormType;
 use App\Form\RegistrationFormType;
 use Doctrine\ORM\EntityManagerInterface;
+use Liip\ImagineBundle\Binary\Loader\LoaderInterface;
+use Liip\ImagineBundle\Imagine\Cache\CacheManager;
+use Liip\ImagineBundle\Imagine\Filter\FilterManager;
+use Liip\ImagineBundle\Model\Binary;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -26,7 +31,7 @@ class UserController extends AbstractController
     }
 
     #[Route('/register', name: 'app_register')]
-    public function register(Request $request, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager, SluggerInterface $slugger, Security $security): Response
+    public function register(Request $request, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager, SluggerInterface $slugger, Security $security, CacheManager $cacheManager, FilterManager $filterManager, LoaderInterface $loader): Response
     {
         if ($this->getUser()) {
             $this->addFlash('info', 'Hi '.$this->getUser()->getName().'. You are already logged in. Please logout first.');
@@ -57,6 +62,16 @@ class UserController extends AbstractController
                         $this->getParameter('profile_pictures_directory'),
                         $newFilename
                     );
+
+                    // Load the image as a binary
+                    $file = new File($this->getParameter('profile_pictures_directory').'/'.$newFilename);
+                    $binary = new Binary(file_get_contents($file->getPathname()), $file->getMimeType(), $file->guessExtension());
+
+                    // Apply the thumbnail filter
+                    $filteredBinary = $filterManager->applyFilter($binary, 'thumbnail');
+
+                    // Save the filtered image
+                    file_put_contents($file->getPathname(), $filteredBinary->getContent());
                 } catch (FileException $e) {
                     $this->addFlash('error', 'Failed to upload profile picture.');
                 }
@@ -71,6 +86,9 @@ class UserController extends AbstractController
 
             // Log in the user manually
             $security->login($user);
+
+            // Redirect to the main page
+            return $this->redirectToRoute('main');
         }
 
         return $this->render('main/register.html.twig', [
