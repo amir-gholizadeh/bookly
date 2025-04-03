@@ -1,0 +1,62 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Manager Dashboard{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <h1>Manager Dashboard</h1>
+
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h3>Book Management</h3>
+        </div>
+        <div class="card-body">
+            <p>As a manager, you can review and manage all books in the system.</p>
+        </div>
+    </div>
+
+    <h2>All Books</h2>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Cover</th>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Genre</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for book in books %}
+                <tr>
+                    <td>{{ book.id }}</td>
+                    <td>
+                        {% if book.coverImagePath %}
+                            <img src="{{ asset('uploads/cover_images/' ~ book.coverImagePath) }}"
+                                 alt="{{ book.title }}" style="max-width: 50px;">
+                        {% else %}
+                            <img src="{{ asset('uploads/cover_images/default_cover.jpg') }}"
+                                 alt="Default Cover" style="max-width: 50px;">
+                        {% endif %}
+                    </td>
+                    <td>{{ book.title }}</td>
+                    <td>{{ book.author }}</td>
+                    <td>{{ book.genre }}</td>
+
+                    <td>
+                        <a href="{{ path('book_show', {'id': book.id}) }}" class="btn btn-sm btn-info">View</a>
+                        <a href="{{ path('book_edit', {'id': book.id}) }}" class="btn btn-sm btn-primary">Edit</a>
+                        <form method="post" action="{{ path('book_delete', {'id': book.id}) }}" style="display: inline-block"
+                              onsubmit="return confirm('Are you sure you want to delete this book?');">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ book.id) }}">
+                            <button class="btn btn-sm btn-danger">Delete</button>
+                        </form>
+                    </td>
+
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

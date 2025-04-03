@@ -1,4 +1,5 @@
 <?php
+
 // src/Form/RegistrationFormType.php
 
 namespace App\Form;
@@ -6,6 +7,7 @@ namespace App\Form;
 use App\Entity\User;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
@@ -35,6 +37,15 @@ class RegistrationFormType extends AbstractType
                 'label' => 'I am not a robot',
                 'mapped' => false,
                 'required' => true,
+            ])
+            ->add('roles', ChoiceType::class, [
+                'mapped' => false,
+                'required' => false,
+                'label' => 'Role',
+                'choices' => [
+                    'User' => 'ROLE_USER',
+                    'Manager' => 'ROLE_MANAGER',
+                ],
             ]);
     }
 
