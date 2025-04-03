@@ -13,3 +13,7 @@ liip_imagine:
             quality: 75
             filters:
                 thumbnail: { size: [200, 200], mode: inset }
+        resize_600x900:
+            quality: 75
+            filters:
+                thumbnail: { size: [600, 900], mode: inset }

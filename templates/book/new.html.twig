@@ -1,0 +1,51 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<div class="container">
+    {% for label, messages in app.flashes %}
+        <div class="alert alert-{{ label }}">
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        </div>
+    {% endfor %}
+    <h1>Add a New Book</h1>
+    {{ form_start(bookForm, {'attr': {'class': 'row g-3'}}) }}
+
+    <div class="col-md-6">
+        {{ form_label(bookForm.title, 'Title', {'label_attr': {'class': 'form-label'}}) }}
+        {{ form_widget(bookForm.title, {'attr': {'class': 'form-control', 'id': 'inputTitle'}}) }}
+    </div>
+
+    <div class="col-md-6">
+        {{ form_label(bookForm.author, 'Author', {'label_attr': {'class': 'form-label'}}) }}
+        {{ form_widget(bookForm.author, {'attr': {'class': 'form-control', 'id': 'inputAuthor'}}) }}
+    </div>
+
+    <div class="col-md-6">
+        {{ form_label(bookForm.numberOfPages, 'Number of Pages', {'label_attr': {'class': 'form-label'}}) }}
+        {{ form_widget(bookForm.numberOfPages, {'attr': {'class': 'form-control', 'id': 'inputNumberOfPages'}}) }}
+    </div>
+
+    <div class="col-12">
+        {{ form_label(bookForm.summary, 'Summary', {'label_attr': {'class': 'form-label'}}) }}
+        {{ form_widget(bookForm.summary, {'attr': {'class': 'form-control', 'id': 'inputSummary', 'rows': 8}}) }}
+    </div>
+
+    <div class="col-12">
+        {{ form_label(bookForm.genre, 'Genre', {'label_attr': {'class': 'form-label'}}) }}
+        {{ form_widget(bookForm.genre, {'attr': {'class': 'form-control', 'id': 'inputGenre'}}) }}
+    </div>
+
+    <div class="col-12">
+        {{ form_label(bookForm.coverImagePath, 'Cover Image', {'label_attr': {'class': 'form-label'}}) }}
+        {{ form_widget(bookForm.coverImagePath, {'attr': {'class': 'form-control', 'id': 'inputCoverImage'}}) }}
+    </div>
+
+    <div class="col-12">
+        <button type="submit" class="btn btn-primary">Add Book</button>
+    </div>
+
+    {{ form_end(bookForm) }}
+</div>
+{% endblock %}

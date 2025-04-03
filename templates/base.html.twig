@@ -24,6 +24,11 @@
                         <li class="nav-item">
                             <a class="nav-link" href="{{ path('app_login') }}">Login</a>
                         </li>
+                        {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ path('book_new') }}">Add New Book</a>
+                            </li>
+                        {% endif %}
                     </ul>
                     {% if is_granted('IS_AUTHENTICATED_FULLY') %}
                         <a class="btn btn-outline-danger ms-auto" href="{{ path('app_logout') }}">
