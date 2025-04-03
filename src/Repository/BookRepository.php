@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Book;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 use Doctrine\Persistence\ManagerRegistry;
 
 class BookRepository extends ServiceEntityRepository
@@ -13,5 +14,14 @@ class BookRepository extends ServiceEntityRepository
         parent::__construct($registry, Book::class);
     }
 
-    // Add custom repository methods here
+    public function findPaginatedBooks(int $page, int $limit): Paginator
+    {
+        $query = $this->createQueryBuilder('b')
+            ->orderBy('b.id', 'DESC')
+            ->getQuery()
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit);
+
+        return new Paginator($query);
+    }
 }

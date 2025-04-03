@@ -27,12 +27,17 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 class UserController extends AbstractController
 {
     #[Route('/', name: 'main')]
-    public function index(BookRepository $bookRepository): Response
+    public function index(BookRepository $bookRepository, Request $request): Response
     {
-        $books = $bookRepository->findAll();
+        $page = $request->query->getInt('page', 1);
+        $limit = 10; // Number of books per page
+
+        $paginator = $bookRepository->findPaginatedBooks($page, $limit);
 
         return $this->render('main/index.html.twig', [
-            'books' => $books,
+            'books' => $paginator,
+            'currentPage' => $page,
+            'totalPages' => ceil(count($paginator) / $limit),
         ]);
     }
 
