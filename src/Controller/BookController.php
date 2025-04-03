@@ -4,8 +4,8 @@ namespace App\Controller;
 
 use App\Entity\Book;
 use App\Entity\Review;
-use App\Form\ReviewFormType;
 use App\Form\BookFormType;
+use App\Form\ReviewFormType;
 use Doctrine\ORM\EntityManagerInterface;
 use Liip\ImagineBundle\Imagine\Filter\FilterManager;
 use Liip\ImagineBundle\Model\Binary;
@@ -60,6 +60,52 @@ class BookController extends AbstractController
         }
 
         return $this->redirectToRoute('book_show', ['id' => $book->getId()]);
+    }
+
+    #[Route('/review/{id}/edit', name: 'review_edit')]
+    public function editReview(Review $review, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        // Check if user is the owner of this review
+        if (!$review->isOwnedBy($this->getUser()) && !$this->isGranted('ROLE_MANAGER')) {
+            throw $this->createAccessDeniedException('You cannot edit this review');
+        }
+
+        $form = $this->createForm(ReviewFormType::class, $review);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $review->setUpdatedAt(new \DateTime());
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Your review has been updated!');
+
+            return $this->redirectToRoute('book_show', ['id' => $review->getBook()->getId()]);
+        }
+
+        return $this->render('book/edit_review.html.twig', [
+            'reviewForm' => $form->createView(),
+            'review' => $review,
+            'book' => $review->getBook(),
+        ]);
+    }
+
+    #[Route('/review/{id}/delete', name: 'review_delete', methods: ['POST'])]
+    public function deleteReview(Review $review, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        // Check if user is the owner of this review or a manager
+        if (!$review->isOwnedBy($this->getUser()) && !$this->isGranted('ROLE_MANAGER')) {
+            throw $this->createAccessDeniedException('You cannot delete this review');
+        }
+
+        $bookId = $review->getBook()->getId();
+
+        if ($this->isCsrfTokenValid('delete'.$review->getId(), $request->request->get('_token'))) {
+            $entityManager->remove($review);
+            $entityManager->flush();
+            $this->addFlash('success', 'Review deleted successfully!');
+        }
+
+        return $this->redirectToRoute('book_show', ['id' => $bookId]);
     }
 
     // Create a new book - available to all logged-in users
