@@ -1,5 +1,35 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-<h1>Hi there Mate!</h1>
+<div class="container mt-5">
+    <h1 class="mb-4">Book List</h1>
+    <table class="table table-hover table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th scope="col">Cover</th>
+                <th scope="col">Title</th>
+                <th scope="col">Author</th>
+                <th scope="col">Number of Pages</th>
+                <th scope="col">Genre</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for book in books %}
+                <tr class="align-middle" style="cursor: pointer;" onclick="window.location.href='{{ path('book_show', {id: book.id}) }}'">
+                    <td>
+                        {% if book.coverImagePath %}
+                            <img src="{{ asset('uploads/cover_images/' ~ book.coverImagePath) }}" alt="{{ book.title }}" style="max-width: 50px;">
+                        {% else %}
+                            <img src="{{ asset('uploads/cover_images/default_cover.jpg') }}" alt="Default Cover" style="max-width: 50px;">
+                        {% endif %}
+                    </td>
+                    <td>{{ book.title }}</td>
+                    <td>{{ book.author }}</td>
+                    <td>{{ book.numberOfPages }}</td>
+                    <td>{{ book.genre }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}

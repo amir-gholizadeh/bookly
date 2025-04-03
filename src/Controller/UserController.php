@@ -7,6 +7,7 @@ use App\Entity\User;
 use App\Form\BookFormType;
 use App\Form\LoginFormType;
 use App\Form\RegistrationFormType;
+use App\Repository\BookRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Liip\ImagineBundle\Binary\Loader\LoaderInterface;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
@@ -26,9 +27,12 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 class UserController extends AbstractController
 {
     #[Route('/', name: 'main')]
-    public function index(): Response
+    public function index(BookRepository $bookRepository): Response
     {
+        $books = $bookRepository->findAll();
+
         return $this->render('main/index.html.twig', [
+            'books' => $books,
         ]);
     }
 
@@ -80,6 +84,14 @@ class UserController extends AbstractController
 
         return $this->render('book/new.html.twig', [
             'bookForm' => $form->createView(),
+        ]);
+    }
+
+    #[Route('/book/{id}', name: 'book_show')]
+    public function showBook(Book $book): Response
+    {
+        return $this->render('book/show.html.twig', [
+            'book' => $book,
         ]);
     }
 

@@ -1,0 +1,28 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-header">
+            <h1>{{ book.title }}</h1>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    {% if book.coverImagePath %}
+                        <img src="{{ asset('uploads/cover_images/' ~ book.coverImagePath) }}" alt="{{ book.title }}" class="img-fluid rounded">
+                    {% else %}
+                        <img src="{{ asset('uploads/cover_images/default_cover.jpg') }}" alt="Default Cover" class="img-fluid rounded">
+                    {% endif %}
+                </div>
+                <div class="col-md-8">
+                    <p><strong>Author:</strong> {{ book.author }}</p>
+                    <p><strong>Number of Pages:</strong> {{ book.numberOfPages }}</p>
+                    <p><strong>Genre:</strong> {{ book.genre }}</p>
+                    <p><strong>Summary:</strong> {{ book.summary|nl2br }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
