@@ -3,6 +3,8 @@
 namespace App\Controller;
 
 use App\Entity\Book;
+use App\Entity\Review;
+use App\Form\ReviewFormType;
 use App\Form\BookFormType;
 use Doctrine\ORM\EntityManagerInterface;
 use Liip\ImagineBundle\Imagine\Filter\FilterManager;
@@ -20,11 +22,44 @@ class BookController extends AbstractController
 {
     // Show a book - available to all users
     #[Route('/{id}', name: 'book_show', requirements: ['id' => '\d+'])]
-    public function show(Book $book): Response
+    public function show(Book $book, Request $request): Response
     {
+        // Create review form if user is logged in
+        $reviewForm = null;
+        if ($this->getUser()) {
+            $review = new Review();
+            $reviewForm = $this->createForm(ReviewFormType::class, $review, [
+                'action' => $this->generateUrl('book_add_review', ['id' => $book->getId()]),
+            ]);
+        }
+
         return $this->render('book/show.html.twig', [
             'book' => $book,
+            'reviewForm' => $reviewForm ? $reviewForm->createView() : null,
         ]);
+    }
+
+    #[Route('/{id}/review', name: 'book_add_review', methods: ['POST'])]
+    public function addReview(Book $book, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
+
+        $review = new Review();
+        $review->setBook($book);
+        $review->setReviewer($this->getUser());
+        $review->setCreatedAt(new \DateTime());
+
+        $form = $this->createForm(ReviewFormType::class, $review);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->persist($review);
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Your review has been added!');
+        }
+
+        return $this->redirectToRoute('book_show', ['id' => $book->getId()]);
     }
 
     // Create a new book - available to all logged-in users
