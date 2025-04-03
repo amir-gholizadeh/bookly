@@ -30,9 +30,10 @@ class UserController extends AbstractController
     public function index(BookRepository $bookRepository, Request $request): Response
     {
         $page = $request->query->getInt('page', 1);
+        $sort = $request->query->get('sort');
         $limit = 10; // Number of books per page
 
-        $paginator = $bookRepository->findPaginatedBooks($page, $limit);
+        $paginator = $bookRepository->findPaginatedBooks($page, $limit, $sort);
 
         return $this->render('main/index.html.twig', [
             'books' => $paginator,

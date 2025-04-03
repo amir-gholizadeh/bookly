@@ -14,10 +14,44 @@ class BookRepository extends ServiceEntityRepository
         parent::__construct($registry, Book::class);
     }
 
-    public function findPaginatedBooks(int $page, int $limit): Paginator
+    public function findPaginatedBooks(int $page, int $limit, ?string $sortBy = null): Paginator
     {
-        $query = $this->createQueryBuilder('b')
-            ->orderBy('b.id', 'DESC')
+        $queryBuilder = $this->createQueryBuilder('b');
+
+        // Apply sorting
+        switch ($sortBy) {
+            case 'title_asc':
+                $queryBuilder->orderBy('b.title', 'ASC');
+                break;
+            case 'title_desc':
+                $queryBuilder->orderBy('b.title', 'DESC');
+                break;
+            case 'author_asc':
+                $queryBuilder->orderBy('b.author', 'ASC');
+                break;
+            case 'author_desc':
+                $queryBuilder->orderBy('b.author', 'DESC');
+                break;
+            case 'rating_desc':
+            case 'rating_asc':
+                // For rating sorting, we need to join with reviews and calculate average
+                $queryBuilder
+                    ->leftJoin('b.reviews', 'r')
+                    ->groupBy('b.id')
+                    ->addSelect('AVG(r.rating) as HIDDEN avg_rating');
+
+                if ('rating_desc' === $sortBy) {
+                    $queryBuilder->orderBy('avg_rating', 'DESC');
+                } else {
+                    $queryBuilder->orderBy('avg_rating', 'ASC');
+                }
+                break;
+            default:
+                // Default sorting by most recent
+                $queryBuilder->orderBy('b.id', 'DESC');
+        }
+
+        $query = $queryBuilder
             ->getQuery()
             ->setFirstResult(($page - 1) * $limit)
             ->setMaxResults($limit);

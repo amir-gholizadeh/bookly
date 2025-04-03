@@ -3,6 +3,24 @@
 {% block body %}
 <div class="container mt-5">
     <h1 class="mb-4">Book List</h1>
+
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <div class="d-flex align-items-center">
+                <span class="me-2">Sort by:</span>
+                <select class="form-select form-select-sm w-auto" onchange="window.location.href='{{ path('main') }}?sort=' + this.value">
+                    <option value="" {% if app.request.query.get('sort') is null %}selected{% endif %}>Most Recent</option>
+                    <option value="title_asc" {% if app.request.query.get('sort') == 'title_asc' %}selected{% endif %}>Title (A-Z)</option>
+                    <option value="title_desc" {% if app.request.query.get('sort') == 'title_desc' %}selected{% endif %}>Title (Z-A)</option>
+                    <option value="author_asc" {% if app.request.query.get('sort') == 'author_asc' %}selected{% endif %}>Author (A-Z)</option>
+                    <option value="author_desc" {% if app.request.query.get('sort') == 'author_desc' %}selected{% endif %}>Author (Z-A)</option>
+                    <option value="rating_desc" {% if app.request.query.get('sort') == 'rating_desc' %}selected{% endif %}>Rating (High to Low)</option>
+                    <option value="rating_asc" {% if app.request.query.get('sort') == 'rating_asc' %}selected{% endif %}>Rating (Low to High)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
     <table class="table table-hover table-bordered">
         <thead class="table-dark">
             <tr>
@@ -19,16 +37,18 @@
                 <tr class="align-middle" style="cursor: pointer;" onclick="window.location.href='{{ path('book_show', {id: book.id}) }}'">
                     <td>
                         {% if book.coverImagePath %}
-                            <img src="{{ asset('uploads/cover_images/' ~ book.coverImagePath) }}" alt="{{ book.title }}" style="max-width: 50px;">
+                            <img src="{{ asset('uploads/cover_images/' ~ book.coverImagePath) }}"
+                                 alt="{{ book.title }}" style="height: 80px;">
                         {% else %}
-                            <img src="{{ asset('uploads/cover_images/default_cover.jpg') }}" alt="Default Cover" style="max-width: 50px;">
+                            <img src="{{ asset('uploads/cover_images/default_cover.jpg') }}"
+                                 alt="Default Cover" style="height: 80px;">
                         {% endif %}
                     </td>
                     <td>{{ book.title }}</td>
                     <td>{{ book.author }}</td>
                     <td>
                         {% if book.reviews|length > 0 %}
-                            <div class="text-warning">
+                            <span class="text-warning">
                                 {% set avgRating = book.averageRating %}
                                 {% for i in 1..5 %}
                                     {% if i <= avgRating %}
@@ -39,9 +59,9 @@
                                         <i class="far fa-star"></i>
                                     {% endif %}
                                 {% endfor %}
-                            </div>
+                            </span>
                         {% else %}
-                            <span class="text-muted">No ratings</span>
+                            <span class="text-muted">No ratings yet</span>
                         {% endif %}
                     </td>
                     <td>{{ book.numberOfPages }}</td>
@@ -55,7 +75,7 @@
         <ul class="pagination">
             {% for i in 1..totalPages %}
                 <li class="page-item {% if i == currentPage %}active{% endif %}">
-                    <a class="page-link" href="{{ path('main', {'page': i}) }}">{{ i }}</a>
+                    <a class="page-link" href="{{ path('main', {'page': i, 'sort': app.request.query.get('sort')}) }}">{{ i }}</a>
                 </li>
             {% endfor %}
         </ul>
