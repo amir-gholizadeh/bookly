@@ -41,6 +41,20 @@ class Book
         $this->reviews = new ArrayCollection();
     }
 
+    public function getAverageRating(): float
+    {
+        if ($this->reviews->isEmpty()) {
+            return 0;
+        }
+
+        $sum = 0;
+        foreach ($this->reviews as $review) {
+            $sum += $review->getRating();
+        }
+
+        return $sum / $this->reviews->count();
+    }
+
     /**
      * @return Collection<int, Review>
      */

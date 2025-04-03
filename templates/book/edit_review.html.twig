@@ -9,6 +9,15 @@
         </div>
         <div class="card-body">
             {{ form_start(reviewForm) }}
+
+            <div class="mb-3">
+                {{ form_label(reviewForm.rating) }}
+                <div class="rating-stars">
+                    {{ form_widget(reviewForm.rating) }}
+                </div>
+                {{ form_errors(reviewForm.rating) }}
+            </div>
+
             {{ form_row(reviewForm.reviewText, {'attr': {'class': 'form-control'}}) }}
             <div class="mt-3">
                 <button type="submit" class="btn btn-primary">Update Review</button>
