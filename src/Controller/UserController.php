@@ -31,9 +31,10 @@ class UserController extends AbstractController
     {
         $page = $request->query->getInt('page', 1);
         $sort = $request->query->get('sort');
+        $search = $request->query->get('search');
         $limit = 10; // Number of books per page
 
-        $paginator = $bookRepository->findPaginatedBooks($page, $limit, $sort);
+        $paginator = $bookRepository->findPaginatedBooks($page, $limit, $sort, $search);
 
         return $this->render('main/index.html.twig', [
             'books' => $paginator,

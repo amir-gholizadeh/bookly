@@ -14,9 +14,19 @@ class BookRepository extends ServiceEntityRepository
         parent::__construct($registry, Book::class);
     }
 
-    public function findPaginatedBooks(int $page, int $limit, ?string $sortBy = null): Paginator
+    public function findPaginatedBooks(int $page, int $limit, ?string $sortBy = null, ?string $search = null): Paginator
     {
         $queryBuilder = $this->createQueryBuilder('b');
+
+        // Apply search if provided
+        if ($search) {
+            $queryBuilder
+                ->where('b.title LIKE :search')
+                ->orWhere('b.author LIKE :search')
+                ->orWhere('b.genre LIKE :search')
+                ->orWhere('b.summary LIKE :search')
+                ->setParameter('search', '%'.$search.'%');
+        }
 
         // Apply sorting
         switch ($sortBy) {

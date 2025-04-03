@@ -6,17 +6,30 @@
 
     <div class="card mb-4">
         <div class="card-header bg-light">
-            <div class="d-flex align-items-center">
-                <span class="me-2">Sort by:</span>
-                <select class="form-select form-select-sm w-auto" onchange="window.location.href='{{ path('main') }}?sort=' + this.value">
-                    <option value="" {% if app.request.query.get('sort') is null %}selected{% endif %}>Most Recent</option>
-                    <option value="title_asc" {% if app.request.query.get('sort') == 'title_asc' %}selected{% endif %}>Title (A-Z)</option>
-                    <option value="title_desc" {% if app.request.query.get('sort') == 'title_desc' %}selected{% endif %}>Title (Z-A)</option>
-                    <option value="author_asc" {% if app.request.query.get('sort') == 'author_asc' %}selected{% endif %}>Author (A-Z)</option>
-                    <option value="author_desc" {% if app.request.query.get('sort') == 'author_desc' %}selected{% endif %}>Author (Z-A)</option>
-                    <option value="rating_desc" {% if app.request.query.get('sort') == 'rating_desc' %}selected{% endif %}>Rating (High to Low)</option>
-                    <option value="rating_asc" {% if app.request.query.get('sort') == 'rating_asc' %}selected{% endif %}>Rating (Low to High)</option>
-                </select>
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <span class="me-2">Sort by:</span>
+                    <select class="form-select form-select-sm w-auto" onchange="window.location.href='{{ path('main') }}?sort=' + this.value + '{% if app.request.query.get('search') %}&search={{ app.request.query.get('search') }}{% endif %}'">
+                        <option value="" {% if app.request.query.get('sort') is null %}selected{% endif %}>Most Recent</option>
+                        <option value="title_asc" {% if app.request.query.get('sort') == 'title_asc' %}selected{% endif %}>Title (A-Z)</option>
+                        <option value="title_desc" {% if app.request.query.get('sort') == 'title_desc' %}selected{% endif %}>Title (Z-A)</option>
+                        <option value="author_asc" {% if app.request.query.get('sort') == 'author_asc' %}selected{% endif %}>Author (A-Z)</option>
+                        <option value="author_desc" {% if app.request.query.get('sort') == 'author_desc' %}selected{% endif %}>Author (Z-A)</option>
+                        <option value="rating_desc" {% if app.request.query.get('sort') == 'rating_desc' %}selected{% endif %}>Rating (High to Low)</option>
+                        <option value="rating_asc" {% if app.request.query.get('sort') == 'rating_asc' %}selected{% endif %}>Rating (Low to High)</option>
+                    </select>
+                </div>
+                <form action="{{ path('main') }}" method="get" class="d-flex">
+                    {% if app.request.query.get('sort') %}
+                        <input type="hidden" name="sort" value="{{ app.request.query.get('sort') }}">
+                    {% endif %}
+                    <div class="input-group">
+                        <input type="text" name="search" class="form-control form-control-sm" placeholder="Search books..." value="{{ app.request.query.get('search') }}">
+                        <button class="btn btn-outline-secondary btn-sm" type="submit">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -72,12 +85,32 @@
     </table>
 
     <nav aria-label="Page navigation">
-        <ul class="pagination">
+        <ul class="pagination justify-content-center">
+            {% if currentPage > 1 %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ path('main', {'page': currentPage - 1, 'sort': app.request.query.get('sort'), 'search': app.request.query.get('search')}) }}">Previous</a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">Previous</span>
+                </li>
+            {% endif %}
+
             {% for i in 1..totalPages %}
                 <li class="page-item {% if i == currentPage %}active{% endif %}">
-                    <a class="page-link" href="{{ path('main', {'page': i, 'sort': app.request.query.get('sort')}) }}">{{ i }}</a>
+                    <a class="page-link" href="{{ path('main', {'page': i, 'sort': app.request.query.get('sort'), 'search': app.request.query.get('search')}) }}">{{ i }}</a>
                 </li>
             {% endfor %}
+
+            {% if currentPage < totalPages %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ path('main', {'page': currentPage + 1, 'sort': app.request.query.get('sort'), 'search': app.request.query.get('search')}) }}">Next</a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">Next</span>
+                </li>
+            {% endif %}
         </ul>
     </nav>
 </div>
