@@ -45,4 +45,33 @@ class AdminController extends AbstractController
             'form' => $form->createView(),
         ]);
     }
+
+    #[Route('/user/{id}/delete', name: 'admin_user_delete', methods: ['POST'])]
+    public function deleteUser(User $user, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        if ($this->isCsrfTokenValid('delete'.$user->getId(), $request->request->get('_token'))) {
+            // Don't allow deleting your own account
+            if ($user === $this->getUser()) {
+                $this->addFlash('error', 'You cannot delete your own account.');
+
+                return $this->redirectToRoute('admin_users');
+            }
+
+            // Delete profile picture if it exists
+            if ($user->getProfilePicturePath()) {
+                $picturePath = $this->getParameter('profile_pictures_directory').'/'.$user->getProfilePicturePath();
+                if (file_exists($picturePath)) {
+                    unlink($picturePath);
+                }
+            }
+
+            $entityManager->remove($user);
+            $entityManager->flush();
+            $this->addFlash('success', 'User deleted successfully.');
+        }
+
+        return $this->redirectToRoute('admin_users');
+    }
 }
