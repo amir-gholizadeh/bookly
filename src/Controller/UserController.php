@@ -2,9 +2,8 @@
 
 namespace App\Controller;
 
-use App\Entity\Book;
+use App\Entity\Review;
 use App\Entity\User;
-use App\Form\BookFormType;
 use App\Form\LoginFormType;
 use App\Form\RegistrationFormType;
 use App\Repository\BookRepository;
@@ -176,5 +175,114 @@ class UserController extends AbstractController
         $testValue = $session->get('test');
 
         return new Response('Session test value: '.$testValue);
+    }
+
+    #[Route('/reviews', name: 'all_reviews')]
+    public function allReviews(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $page = $request->query->getInt('page', 1);
+        $sort = $request->query->get('sort');
+        $search = $request->query->get('search');
+        $limit = 10; // Number of reviews per page
+
+        $reviewRepository = $entityManager->getRepository(Review::class);
+        $queryBuilder = $reviewRepository->createQueryBuilder('r')
+            ->leftJoin('r.book', 'b')
+            ->leftJoin('r.reviewer', 'u');
+
+        // Apply search if provided
+        if ($search) {
+            $queryBuilder
+                ->where('b.title LIKE :search')
+                ->orWhere('u.name LIKE :search')
+                ->orWhere('r.reviewText LIKE :search')
+                ->setParameter('search', '%'.$search.'%');
+        }
+
+        // Apply sorting
+        switch ($sort) {
+            case 'date_asc':
+                $queryBuilder->orderBy('r.createdAt', 'ASC');
+                break;
+            case 'date_desc':
+                $queryBuilder->orderBy('r.createdAt', 'DESC');
+                break;
+            case 'rating_asc':
+                $queryBuilder->orderBy('r.rating', 'ASC');
+                break;
+            case 'rating_desc':
+                $queryBuilder->orderBy('r.rating', 'DESC');
+                break;
+            case 'book_asc':
+                $queryBuilder->orderBy('b.title', 'ASC');
+                break;
+            case 'book_desc':
+                $queryBuilder->orderBy('b.title', 'DESC');
+                break;
+            default:
+                $queryBuilder->orderBy('r.createdAt', 'DESC'); // Default sort by most recent
+        }
+
+        $totalReviews = count($queryBuilder->getQuery()->getResult());
+        $totalPages = ceil($totalReviews / $limit);
+
+        $reviews = $queryBuilder
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+
+        return $this->render('main/reviews.html.twig', [
+            'reviews' => $reviews,
+            'currentPage' => $page,
+            'totalPages' => $totalPages,
+        ]);
+    }
+
+    #[Route('/review-search-suggestions', name: 'review_search_suggestions')]
+    public function reviewSearchSuggestions(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $query = $request->query->get('q', '');
+
+        if (strlen($query) < 2) {
+            return $this->json([]);
+        }
+
+        $reviewRepository = $entityManager->getRepository(Review::class);
+        $queryBuilder = $reviewRepository->createQueryBuilder('r')
+            ->select('DISTINCT b.title', 'u.name', 'r.reviewText')
+            ->leftJoin('r.book', 'b')
+            ->leftJoin('r.reviewer', 'u')
+            ->where('b.title LIKE :query')
+            ->orWhere('u.name LIKE :query')
+            ->orWhere('r.reviewText LIKE :query')
+            ->setParameter('query', '%'.$query.'%')
+            ->setMaxResults(10);
+
+        $results = $queryBuilder->getQuery()->getResult();
+
+        // Format results for autocomplete
+        $suggestions = [];
+        foreach ($results as $result) {
+            if (false !== stripos($result['title'], $query) && !in_array($result['title'], array_column($suggestions, 'value'))) {
+                $suggestions[] = ['value' => $result['title'], 'type' => 'book'];
+            }
+            if (false !== stripos($result['name'], $query) && !in_array($result['name'], array_column($suggestions, 'value'))) {
+                $suggestions[] = ['value' => $result['name'], 'type' => 'reviewer'];
+            }
+            // For review text, we'll extract a small snippet containing the search term
+            if (false !== stripos($result['reviewText'], $query)) {
+                $position = stripos($result['reviewText'], $query);
+                $start = max(0, $position - 15);
+                $length = min(strlen($result['reviewText']) - $start, 50);
+                $snippet = '...'.substr($result['reviewText'], $start, $length).'...';
+
+                if (!in_array($snippet, array_column($suggestions, 'value'))) {
+                    $suggestions[] = ['value' => $snippet, 'type' => 'content'];
+                }
+            }
+        }
+
+        return $this->json(array_slice($suggestions, 0, 5));
     }
 }
