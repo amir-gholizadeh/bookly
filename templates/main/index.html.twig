@@ -24,7 +24,7 @@
                         <input type="hidden" name="sort" value="{{ app.request.query.get('sort') }}">
                     {% endif %}
                     <div class="input-group">
-                        <input type="text" name="search" class="form-control form-control-sm" placeholder="Search books..." value="{{ app.request.query.get('search') }}">
+                        <input type="text" name="search" id="search-autocomplete" class="form-control form-control-sm" placeholder="Search books..." value="{{ app.request.query.get('search') }}">
                         <button class="btn btn-outline-secondary btn-sm" type="submit">
                             <i class="fas fa-search"></i>
                         </button>
@@ -114,4 +114,49 @@
         </ul>
     </nav>
 </div>
+{% endblock %}
+
+{#Javascript for autocomplete search:#}
+{% block javascripts %}
+    <script>
+        $(document).ready(function() {
+            $("#search-autocomplete").autocomplete({
+                source: function(request, response) {
+                    $.ajax({
+                        url: "{{ path('search_suggestions') }}",
+                        dataType: "json",
+                        data: {
+                            q: request.term
+                        },
+                        success: function(data) {
+                            response($.map(data, function(item) {
+                                return {
+                                    label: item.value + ' (' + item.type + ')',
+                                    value: item.value
+                                };
+                            }));
+                        }
+                    });
+                },
+                minLength: 2,
+                select: function(event, ui) {
+                    $("#search-autocomplete").val(ui.item.value);
+                    $(this).closest("form").submit();
+                    return false;
+                }
+            }).autocomplete("instance")._renderItem = function(ul, item) {
+                // Customize the appearance of suggestion items
+                let icon = 'book';
+                if (item.label.includes('(author)')) {
+                    icon = 'user';
+                } else if (item.label.includes('(genre)')) {
+                    icon = 'tag';
+                }
+
+                return $("<li>")
+                    .append("<div><i class='fas fa-" + icon + " me-2'></i>" + item.label + "</div>")
+                    .appendTo(ul);
+            };
+        });
+    </script>
 {% endblock %}

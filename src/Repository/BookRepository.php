@@ -68,4 +68,34 @@ class BookRepository extends ServiceEntityRepository
 
         return new Paginator($query);
     }
+
+    public function findSearchSuggestions(string $query, int $limit = 5): array
+    {
+        $queryBuilder = $this->createQueryBuilder('b')
+            ->select('b.title, b.author, b.genre')
+            ->where('b.title LIKE :query')
+            ->orWhere('b.author LIKE :query')
+            ->orWhere('b.genre LIKE :query')
+            ->setParameter('query', '%'.$query.'%')
+            ->setMaxResults($limit)
+            ->orderBy('b.title', 'ASC');
+
+        $results = $queryBuilder->getQuery()->getResult();
+
+        // Format results for autocomplete
+        $suggestions = [];
+        foreach ($results as $result) {
+            if (false !== stripos($result['title'], $query)) {
+                $suggestions[] = ['value' => $result['title'], 'type' => 'title'];
+            }
+            if (false !== stripos($result['author'], $query) && !in_array($result['author'], array_column($suggestions, 'value'))) {
+                $suggestions[] = ['value' => $result['author'], 'type' => 'author'];
+            }
+            if (false !== stripos($result['genre'], $query) && !in_array($result['genre'], array_column($suggestions, 'value'))) {
+                $suggestions[] = ['value' => $result['genre'], 'type' => 'genre'];
+            }
+        }
+
+        return array_slice($suggestions, 0, $limit);
+    }
 }

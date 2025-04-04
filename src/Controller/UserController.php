@@ -43,6 +43,20 @@ class UserController extends AbstractController
         ]);
     }
 
+    #[Route('/search-suggestions', name: 'search_suggestions')]
+    public function searchSuggestions(Request $request, BookRepository $bookRepository): Response
+    {
+        $query = $request->query->get('q', '');
+
+        if (strlen($query) < 2) {
+            return $this->json([]);
+        }
+
+        $suggestions = $bookRepository->findSearchSuggestions($query);
+
+        return $this->json($suggestions);
+    }
+
     #[Route('/register', name: 'app_register')]
     public function register(Request $request, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager, SluggerInterface $slugger, Security $security, CacheManager $cacheManager, FilterManager $filterManager, LoaderInterface $loader): Response
     {
