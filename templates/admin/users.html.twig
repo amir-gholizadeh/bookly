@@ -14,6 +14,48 @@
         </div>
     {% endfor %}
 
+    <!-- Search and Sort Card -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body bg-light py-3">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <form action="{{ path('admin_users') }}" method="get" class="d-flex">
+                        {% if app.request.query.get('sort') %}
+                            <input type="hidden" name="sort" value="{{ app.request.query.get('sort') }}">
+                        {% endif %}
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="fas fa-search text-primary"></i></span>
+                            <input type="text" name="search" id="user-search" class="form-control"
+                                placeholder="Search by name, email or role..." value="{{ app.request.query.get('search') }}">
+                            <button class="btn btn-primary" type="submit">Search</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center justify-content-md-end">
+                        <label class="me-2 text-nowrap"><i class="fas fa-sort me-1"></i>Sort by:</label>
+                        <select class="form-select w-auto" onchange="window.location.href='{{ path('admin_users') }}?sort=' + this.value + '{% if app.request.query.get('search') %}&search={{ app.request.query.get('search') }}{% endif %}'">
+                            <option value="" {% if app.request.query.get('sort') is null %}selected{% endif %}>Most Recent</option>
+                            <option value="name_asc" {% if app.request.query.get('sort') == 'name_asc' %}selected{% endif %}>Name (A-Z)</option>
+                            <option value="name_desc" {% if app.request.query.get('sort') == 'name_desc' %}selected{% endif %}>Name (Z-A)</option>
+                            <option value="email_asc" {% if app.request.query.get('sort') == 'email_asc' %}selected{% endif %}>Email (A-Z)</option>
+                            <option value="email_desc" {% if app.request.query.get('sort') == 'email_desc' %}selected{% endif %}>Email (Z-A)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if app.request.query.get('search') %}
+        <div class="alert alert-info mb-4">
+            <i class="fas fa-filter me-2"></i>Showing results for: <strong>{{ app.request.query.get('search') }}</strong>
+            <a href="{{ path('admin_users', {'sort': app.request.query.get('sort')}) }}" class="ms-2 btn btn-sm btn-outline-info">
+                <i class="fas fa-times me-1"></i>Clear Filter
+            </a>
+        </div>
+    {% endif %}
+
     <div class="card mb-4">
         <div class="card-header bg-primary text-white">
             <h3 class="mb-0">Users List</h3>
@@ -87,12 +129,73 @@
                                     </div>
                                 </td>
                             </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center py-4">
+                                    <div class="alert alert-info mb-0">
+                                        <i class="fas fa-info-circle me-2"></i>No users found matching your criteria.
+                                    </div>
+                                </td>
+                            </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
+
+    <!-- Pagination -->
+    {% if totalPages > 1 %}
+        <nav aria-label="User pagination" class="my-4">
+            <ul class="pagination justify-content-center">
+                <!-- First page button -->
+                <li class="page-item {% if currentPage == 1 %}disabled{% endif %}">
+                    <a class="page-link" href="{{ path('admin_users', {'page': 1, 'sort': app.request.query.get('sort'), 'search': app.request.query.get('search')}) }}" aria-label="First">
+                        <i class="fas fa-angle-double-left"></i>
+                    </a>
+                </li>
+
+                <!-- Previous page button -->
+                <li class="page-item {% if currentPage == 1 %}disabled{% endif %}">
+                    <a class="page-link" href="{{ path('admin_users', {'page': currentPage > 1 ? currentPage - 1 : 1, 'sort': app.request.query.get('sort'), 'search': app.request.query.get('search')}) }}" aria-label="Previous">
+                        <i class="fas fa-angle-left"></i>
+                    </a>
+                </li>
+
+                <!-- Page numbers -->
+                {% set startPage = max(1, currentPage - 2) %}
+                {% set endPage = min(totalPages, startPage + 4) %}
+                {% if endPage - startPage < 4 and startPage > 1 %}
+                    {% set startPage = max(1, endPage - 4) %}
+                {% endif %}
+
+                {% for i in startPage..endPage %}
+                    <li class="page-item {% if currentPage == i %}active{% endif %}">
+                        <a class="page-link" href="{{ path('admin_users', {'page': i, 'sort': app.request.query.get('sort'), 'search': app.request.query.get('search')}) }}">{{ i }}</a>
+                    </li>
+                {% endfor %}
+
+                <!-- Next page button -->
+                <li class="page-item {% if currentPage == totalPages %}disabled{% endif %}">
+                    <a class="page-link" href="{{ path('admin_users', {'page': currentPage < totalPages ? currentPage + 1 : totalPages, 'sort': app.request.query.get('sort'), 'search': app.request.query.get('search')}) }}" aria-label="Next">
+                        <i class="fas fa-angle-right"></i>
+                    </a>
+                </li>
+
+                <!-- Last page button -->
+                <li class="page-item {% if currentPage == totalPages %}disabled{% endif %}">
+                    <a class="page-link" href="{{ path('admin_users', {'page': totalPages, 'sort': app.request.query.get('sort'), 'search': app.request.query.get('search')}) }}" aria-label="Last">
+                        <i class="fas fa-angle-double-right"></i>
+                    </a>
+                </li>
+            </ul>
+
+            <!-- Page info text -->
+            <div class="text-center text-muted mt-2">
+                <small>Showing page {{ currentPage }} of {{ totalPages }}</small>
+            </div>
+        </nav>
+    {% endif %}
 
     <div class="card mt-4">
         <div class="card-header bg-info text-white">
@@ -134,4 +237,64 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+    $(document).ready(function() {
+        // User search autocomplete functionality
+        $("#user-search").autocomplete({
+            source: function(request, response) {
+                $.ajax({
+                    url: "{{ path('admin_user_search_suggestions') }}",
+                    dataType: "json",
+                    data: {
+                        q: request.term
+                    },
+                    success: function(data) {
+                        response($.map(data, function(item) {
+                            return {
+                                label: item.value,
+                                value: item.value,
+                                type: item.type
+                            };
+                        }));
+                    }
+                });
+            },
+            minLength: 2,
+            select: function(event, ui) {
+                $("#user-search").val(ui.item.value);
+                $(this).closest("form").submit();
+                return false;
+            }
+        }).autocomplete("instance")._renderItem = function(ul, item) {
+            // Choose icon based on suggestion type
+            let icon = 'user';
+            if (item.type === 'email') {
+                icon = 'envelope';
+            } else if (item.type === 'role') {
+                icon = 'tag';
+            }
+
+            return $("<li>")
+                .append("<div class='p-2'><i class='fas fa-" + icon + " me-2 text-primary'></i>" +
+                       "<span class='fw-bold'>" + item.label + "</span>" +
+                       "<small class='ms-2 text-muted'>(" + item.type + ")</small></div>")
+                .appendTo(ul);
+        };
+    });
+</script>
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .table td {
+            vertical-align: middle;
+        }
+        .btn-group .btn {
+            padding: 0.9rem 0.75rem !important;
+        }
+    </style>
 {% endblock %}

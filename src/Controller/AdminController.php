@@ -14,14 +14,62 @@ use Symfony\Component\Routing\Annotation\Route;
 class AdminController extends AbstractController
 {
     #[Route('/users', name: 'admin_users')]
-    public function userList(EntityManagerInterface $entityManager): Response
+    public function userList(EntityManagerInterface $entityManager, Request $request): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
-        $users = $entityManager->getRepository(User::class)->findAll();
+        // Get search parameter and pagination details
+        $search = $request->query->get('search');
+        $page = $request->query->getInt('page', 1);
+        $sort = $request->query->get('sort');
+        $limit = 20; // Number of users per page
+
+        $repository = $entityManager->getRepository(User::class);
+        $queryBuilder = $repository->createQueryBuilder('u');
+
+        // Apply search if provided
+        if ($search) {
+            $queryBuilder
+                ->where('u.name LIKE :search')
+                ->orWhere('u.email LIKE :search')
+                ->setParameter('search', '%'.$search.'%');
+        }
+
+        // Apply sorting
+        switch ($sort) {
+            case 'name_asc':
+                $queryBuilder->orderBy('u.name', 'ASC');
+                break;
+            case 'name_desc':
+                $queryBuilder->orderBy('u.name', 'DESC');
+                break;
+            case 'email_asc':
+                $queryBuilder->orderBy('u.email', 'ASC');
+                break;
+            case 'email_desc':
+                $queryBuilder->orderBy('u.email', 'DESC');
+                break;
+            default:
+                // Default sorting by id (most recent first)
+                $queryBuilder->orderBy('u.id', 'DESC');
+        }
+
+        // Count total results for pagination
+        $countQuery = clone $queryBuilder;
+        $totalUsers = $countQuery->select('COUNT(u.id)')->getQuery()->getSingleScalarResult();
+        $totalPages = ceil($totalUsers / $limit);
+
+        // Get paginated results
+        $users = $queryBuilder
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
 
         return $this->render('admin/users.html.twig', [
             'users' => $users,
+            'currentPage' => $page,
+            'totalPages' => $totalPages,
         ]);
     }
 
@@ -73,5 +121,45 @@ class AdminController extends AbstractController
         }
 
         return $this->redirectToRoute('admin_users');
+    }
+
+    #[Route('/user-search-suggestions', name: 'admin_user_search_suggestions')]
+    public function userSearchSuggestions(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $query = $request->query->get('q', '');
+
+        if (strlen($query) < 2) {
+            return $this->json([]);
+        }
+
+        $repository = $entityManager->getRepository(User::class);
+        $queryBuilder = $repository->createQueryBuilder('u')
+            ->where('u.name LIKE :query')
+            ->orWhere('u.email LIKE :query')
+            ->setParameter('query', '%'.$query.'%')
+            ->setMaxResults(5);
+
+        $users = $queryBuilder->getQuery()->getResult();
+
+        // Format results for autocomplete
+        $suggestions = [];
+        foreach ($users as $user) {
+            if (false !== stripos($user->getName(), $query) && !in_array($user->getName(), array_column($suggestions, 'value'))) {
+                $suggestions[] = ['value' => $user->getName(), 'type' => 'name'];
+            }
+            if (false !== stripos($user->getEmail(), $query) && !in_array($user->getEmail(), array_column($suggestions, 'value'))) {
+                $suggestions[] = ['value' => $user->getEmail(), 'type' => 'email'];
+            }
+
+            // Add role suggestions if the query matches a role
+            foreach ($user->getRoles() as $role) {
+                $displayRole = str_replace('ROLE_', '', $role);
+                if (false !== stripos($displayRole, $query) && !in_array($displayRole, array_column($suggestions, 'value'))) {
+                    $suggestions[] = ['value' => $displayRole, 'type' => 'role'];
+                }
+            }
+        }
+
+        return $this->json(array_slice($suggestions, 0, 5));
     }
 }

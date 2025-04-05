@@ -1,50 +1,144 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Edit User Roles{% endblock %}
+{% block title %}Edit User - Admin Panel{% endblock %}
 
 {% block body %}
 <div class="container mt-5">
-    <h1>Edit User Roles - {{ user.name }}</h1>
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white py-3">
+                    <h2 class="mb-0"><i class="fas fa-user-edit me-2"></i>Edit User</h2>
+                </div>
 
-    {% for label, messages in app.flashes %}
-        <div class="alert alert-{{ label }}">
-            {% for message in messages %}
-                {{ message }}
-            {% endfor %}
-        </div>
-    {% endfor %}
+                <div class="card-body p-4">
+                    {% for label, messages in app.flashes %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ label }} alert-dismissible fade show">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endfor %}
 
-    <div class="card">
-        <div class="card-header">
-            <div class="d-flex align-items-center">
-                {% if user.profilePicturePath %}
-                    <img src="{{ asset('uploads/profile_pictures/' ~ user.profilePicturePath) }}"
-                         alt="{{ user.name }}" style="max-width: 50px; max-height: 50px;" class="rounded-circle me-3">
-                {% else %}
-                    <div class="bg-secondary text-white rounded-circle d-flex justify-content-center align-items-center me-3"
-                         style="width: 50px; height: 50px;">
-                        {{ user.name|first|upper }}
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center">
+                            {% if user.profilePicturePath %}
+                                <img src="{{ asset('uploads/profile_pictures/' ~ user.profilePicturePath) }}"
+                                     alt="{{ user.name }}" class="rounded-circle me-3" width="60" height="60">
+                            {% else %}
+                                <div class="bg-secondary text-white rounded-circle d-flex justify-content-center align-items-center me-3"
+                                     style="width: 60px; height: 60px; font-size: 24px;">
+                                    {{ user.name|first|upper }}
+                                </div>
+                            {% endif %}
+                            <div>
+                                <h4 class="mb-0">{{ user.name }}</h4>
+                                <p class="text-muted mb-0">{{ user.email }}</p>
+                            </div>
+                        </div>
                     </div>
-                {% endif %}
-                <div>
-                    <h5 class="mb-0">{{ user.name }}</h5>
-                    <small>{{ user.email }}</small>
+
+                    {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
+
+                    <div class="mb-4">
+                        <h5 class="card-title mb-3">User Roles</h5>
+                        <div class="role-checkboxes">
+                            {{ form_widget(form.roles) }}
+                        </div>
+                        <div class="invalid-feedback">
+                            {{ form_errors(form.roles) }}
+                        </div>
+                        <small class="form-text text-muted mt-2">
+                            <i class="fas fa-info-circle me-1"></i>
+                            ADMIN roles have full system access. MANAGER roles can manage books and reviews.
+                        </small>
+                    </div>
+
+                    <!-- Add clear spacing before buttons -->
+                    <div class="mt-5 d-flex justify-content-between">
+                        <a href="{{ path('admin_users') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-1"></i> Back to Users
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i> Save Changes
+                        </button>
+                    </div>
+
+                    {{ form_end(form) }}
                 </div>
             </div>
         </div>
-        <div class="card-body">
-            {{ form_start(form) }}
-                <div class="mb-3">
-                    {{ form_label(form.roles, 'User Roles') }}
-                    <div class="mt-2">
-                        {{ form_widget(form.roles) }}
-                    </div>
-                </div>
-
-                <button type="submit" class="btn btn-primary">Save Changes</button>
-                <a href="{{ path('admin_users') }}" class="btn btn-secondary">Cancel</a>
-            {{ form_end(form) }}
-        </div>
     </div>
 </div>
+{% endblock %}
+
+{% block stylesheets %}
+<style>
+    /* Improve role checkboxes layout */
+    .role-checkboxes {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .role-checkboxes .form-check {
+        padding-left: 2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .role-checkboxes .form-check-input {
+        margin-top: 0.25rem;
+    }
+
+    .card {
+        border: none;
+        border-radius: 10px;
+    }
+
+    .card-header {
+        border-radius: 10px 10px 0 0 !important;
+    }
+
+    .btn {
+        border-radius: 5px;
+        transition: all 0.3s;
+    }
+
+    /* Larger checkboxes for better visibility */
+    .form-check-input {
+        width: 1.2em;
+        height: 1.2em;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 576px) {
+        .d-flex.justify-content-between {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .d-flex.justify-content-between .btn {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Form validation
+        const forms = document.querySelectorAll('.needs-validation');
+        Array.from(forms).forEach(form => {
+            form.addEventListener('submit', event => {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    });
+</script>
 {% endblock %}

@@ -1,60 +1,258 @@
 {% extends 'base.html.twig' %}
 
+{% block title %}Edit Book{% endblock %}
+
 {% block body %}
-<div class="container">
-    {% for label, messages in app.flashes %}
-        <div class="alert alert-{{ label }}">
-            {% for message in messages %}
-                <p>{{ message }}</p>
-            {% endfor %}
-        </div>
-    {% endfor %}
-    <h1>Edit Book: {{ book.title }}</h1>
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white py-3">
+                    <h2 class="mb-0"><i class="fas fa-edit me-2"></i>Edit Book</h2>
+                </div>
 
-    {{ form_start(bookForm, {'attr': {'class': 'row g-3'}}) }}
+                <div class="card-body p-4">
+                    {% for label, messages in app.flashes %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ label }} alert-dismissible fade show">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endfor %}
 
-    <div class="col-md-6">
-        {{ form_label(bookForm.title, 'Title', {'label_attr': {'class': 'form-label'}}) }}
-        {{ form_widget(bookForm.title, {'attr': {'class': 'form-control', 'id': 'inputTitle'}}) }}
-    </div>
+                    {{ form_start(bookForm, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
 
-    <div class="col-md-6">
-        {{ form_label(bookForm.author, 'Author', {'label_attr': {'class': 'form-label'}}) }}
-        {{ form_widget(bookForm.author, {'attr': {'class': 'form-control', 'id': 'inputAuthor'}}) }}
-    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            <div class="form-floating mb-3">
+                                {{ form_widget(bookForm.title, {'attr': {'class': 'form-control form-control-lg', 'placeholder': 'Title'}}) }}
+                                {{ form_label(bookForm.title) }}
+                                <div class="invalid-feedback">
+                                    {{ form_errors(bookForm.title) }}
+                                </div>
+                            </div>
 
-    <div class="col-md-6">
-        {{ form_label(bookForm.numberOfPages, 'Number of Pages', {'label_attr': {'class': 'form-label'}}) }}
-        {{ form_widget(bookForm.numberOfPages, {'attr': {'class': 'form-control', 'id': 'inputNumberOfPages'}}) }}
-    </div>
+                            <div class="form-floating mb-3">
+                                {{ form_widget(bookForm.author, {'attr': {'class': 'form-control', 'placeholder': 'Author'}}) }}
+                                {{ form_label(bookForm.author) }}
+                                <div class="invalid-feedback">
+                                    {{ form_errors(bookForm.author) }}
+                                </div>
+                            </div>
 
-    <div class="col-12">
-        {{ form_label(bookForm.summary, 'Summary', {'label_attr': {'class': 'form-label'}}) }}
-        {{ form_widget(bookForm.summary, {'attr': {'class': 'form-control', 'id': 'inputSummary', 'rows': 8}}) }}
-    </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-floating mb-3">
+                                        {{ form_widget(bookForm.numberOfPages, {'attr': {'class': 'form-control', 'placeholder': 'Number of Pages', 'min': 1}}) }}
+                                        {{ form_label(bookForm.numberOfPages) }}
+                                        <div class="invalid-feedback">
+                                            {{ form_errors(bookForm.numberOfPages) }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating mb-3">
+                                        {{ form_widget(bookForm.genre, {'attr': {'class': 'form-control', 'placeholder': 'Genre'}}) }}
+                                        {{ form_label(bookForm.genre) }}
+                                        <div class="invalid-feedback">
+                                            {{ form_errors(bookForm.genre) }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-    <div class="col-12">
-        {{ form_label(bookForm.genre, 'Genre', {'label_attr': {'class': 'form-label'}}) }}
-        {{ form_widget(bookForm.genre, {'attr': {'class': 'form-control', 'id': 'inputGenre'}}) }}
-    </div>
+                        <div class="col-md-4">
+                            <div class="text-center mb-3">
+                                <div class="cover-preview-container mb-2">
+                                    {% if book.coverImagePath %}
+                                        <img src="{{ asset('uploads/cover_images/' ~ book.coverImagePath) }}"
+                                             class="img-thumbnail cover-preview" alt="Book cover">
+                                    {% else %}
+                                        <img src="{{ asset('uploads/cover_images/default_cover.jpg') }}"
+                                             class="img-thumbnail cover-preview" alt="Default cover">
+                                    {% endif %}
+                                </div>
 
-    <div class="col-12">
-        {{ form_label(bookForm.coverImagePath, 'Cover Image', {'label_attr': {'class': 'form-label'}}) }}
-        {{ form_widget(bookForm.coverImagePath, {'attr': {'class': 'form-control', 'id': 'inputCoverImage'}}) }}
-        {% if book.coverImagePath %}
-            <div class="mt-2">
-                <p>Current image:</p>
-                <img src="{{ asset('uploads/cover_images/' ~ book.coverImagePath) }}"
-                     alt="{{ book.title }}" style="max-height: 200px;" class="img-thumbnail">
+                                <div class="custom-file-upload">
+                                    {{ form_widget(bookForm.coverImagePath, {'attr': {'class': 'form-control', 'data-bs-toggle': 'tooltip', 'title': 'Choose a new cover image'}}) }}
+                                    <small class="form-text text-muted">Recommended size: 500x700px</small>
+                                    <div class="invalid-feedback">
+                                        {{ form_errors(bookForm.coverImagePath) }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-floating mb-4">
+                        {{ form_widget(bookForm.summary, {'attr': {'class': 'form-control', 'style': 'height: 150px', 'placeholder': 'Summary'}}) }}
+                        {{ form_label(bookForm.summary) }}
+                        <div class="invalid-feedback">
+                            {{ form_errors(bookForm.summary) }}
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <a href="{{ path('book_show', {'id': book.id}) }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i> Back to Details
+                            </a>
+
+                            {% if is_granted('ROLE_MANAGER') %}
+                                <button type="button" class="btn btn-outline-danger ms-2" data-bs-toggle="modal" data-bs-target="#deleteBookModal">
+                                    <i class="fas fa-trash-alt me-1"></i> Delete
+                                </button>
+                            {% endif %}
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-save me-1"></i> Save Changes
+                        </button>
+                    </div>
+
+                    {{ form_end(bookForm) }}
+                </div>
             </div>
-        {% endif %}
-    </div>
 
-    <div class="col-12">
-        <button type="submit" class="btn btn-primary">Update Book</button>
-        <a href="{{ path('book_show', {'id': book.id}) }}" class="btn btn-secondary">Cancel</a>
+            {% if is_granted('ROLE_MANAGER') %}
+                <!-- Delete Confirmation Modal -->
+                <div class="modal fade" id="deleteBookModal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header bg-danger text-white">
+                                <h5 class="modal-title">Confirm Delete</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>Are you sure you want to delete <strong>{{ book.title }}</strong>?</p>
+                                <p>This will permanently remove the book and all associated reviews. This action cannot be undone.</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <form method="post" action="{{ path('book_delete', {'id': book.id}) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ book.id) }}">
+                                    <button type="submit" class="btn btn-danger">Delete Book</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
     </div>
-
-    {{ form_end(bookForm) }}
 </div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize tooltips
+        const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        tooltips.forEach(tooltip => {
+            new bootstrap.Tooltip(tooltip);
+        });
+
+        // Preview image when selected
+        const imageInput = document.querySelector('#{{ bookForm.coverImagePath.vars.id }}');
+        const previewImage = document.querySelector('.cover-preview');
+
+        if (imageInput && previewImage) {
+            imageInput.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        previewImage.src = e.target.result;
+                    };
+                    reader.readAsDataURL(this.files[0]);
+                }
+            });
+        }
+
+        // Form validation
+        const forms = document.querySelectorAll('.needs-validation');
+        Array.from(forms).forEach(form => {
+            form.addEventListener('submit', event => {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    });
+</script>
+{% endblock %}
+
+{% block stylesheets %}
+<style>
+    .cover-preview-container {
+        height: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        background-color: #f8f9fa;
+    }
+
+    .cover-preview {
+        max-height: 100%;
+        max-width: 100%;
+        object-fit: contain;
+    }
+
+    .form-floating > .form-control {
+        height: calc(3.5rem + 2px);
+        line-height: 1.25;
+    }
+
+    .form-floating > label {
+        padding: 1rem 0.75rem;
+    }
+
+    .form-control:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+
+    .card {
+        border: none;
+        border-radius: 10px;
+    }
+
+    .card-header {
+        border-radius: 10px 10px 0 0 !important;
+    }
+
+    .custom-file-upload {
+        transition: all 0.3s ease;
+    }
+
+    .btn {
+        border-radius: 5px;
+        transition: all 0.3s;
+    }
+
+    .btn-primary {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+
+    .btn-primary:hover {
+        background-color: #0b5ed7;
+        border-color: #0a58ca;
+    }
+
+    .modal-content {
+        border-radius: 10px;
+        border: none;
+    }
+
+    .modal-header {
+        border-radius: 10px 10px 0 0;
+    }
+</style>
 {% endblock %}
