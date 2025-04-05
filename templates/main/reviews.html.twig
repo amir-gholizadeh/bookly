@@ -4,171 +4,221 @@
 
 {% block body %}
 <div class="container mt-5">
-    <h1 class="mb-4">All Reviews</h1>
+    <div class="row mb-4">
+        <div class="col">
+            <h1><i class="fas fa-comments text-primary me-2"></i>Book Reviews</h1>
+        </div>
+    </div>
 
-    <div class="card mb-4">
-        <div class="card-header bg-light">
-            <div class="d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center">
-                    <span class="me-2">Sort by:</span>
-                    <select class="form-select form-select-sm w-auto" onchange="window.location.href='{{ path('all_reviews') }}?sort=' + this.value + '{% if app.request.query.get('search') %}&search={{ app.request.query.get('search') }}{% endif %}'">
-                        <option value="date_desc" {% if app.request.query.get('sort') == 'date_desc' or app.request.query.get('sort') is null %}selected{% endif %}>Most Recent</option>
-                        <option value="date_asc" {% if app.request.query.get('sort') == 'date_asc' %}selected{% endif %}>Oldest First</option>
-                        <option value="rating_desc" {% if app.request.query.get('sort') == 'rating_desc' %}selected{% endif %}>Rating (High to Low)</option>
-                        <option value="rating_asc" {% if app.request.query.get('sort') == 'rating_asc' %}selected{% endif %}>Rating (Low to High)</option>
-                        <option value="book_asc" {% if app.request.query.get('sort') == 'book_asc' %}selected{% endif %}>Book (A-Z)</option>
-                        <option value="book_desc" {% if app.request.query.get('sort') == 'book_desc' %}selected{% endif %}>Book (Z-A)</option>
-                    </select>
+    <!-- Search and Sort Card -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body bg-light py-3">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <form action="{{ path('all_reviews') }}" method="get" class="d-flex">
+                        {% if app.request.query.get('sort') %}
+                            <input type="hidden" name="sort" value="{{ app.request.query.get('sort') }}">
+                        {% endif %}
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="fas fa-search text-primary"></i></span>
+                            <input type="text" name="search" id="review-search-autocomplete" class="form-control"
+                                placeholder="Search reviews..." value="{{ app.request.query.get('search') }}">
+                            <button class="btn btn-primary" type="submit">Search</button>
+                        </div>
+                    </form>
                 </div>
-                <form action="{{ path('all_reviews') }}" method="get" class="d-flex">
-                    {% if app.request.query.get('sort') %}
-                        <input type="hidden" name="sort" value="{{ app.request.query.get('sort') }}">
-                    {% endif %}
-                    <div class="input-group">
-                        <input type="text" name="search" id="review-search-autocomplete" class="form-control form-control-sm" placeholder="Search reviews..." value="{{ app.request.query.get('search') }}">
-                        <button class="btn btn-outline-secondary btn-sm" type="submit">
-                            <i class="fas fa-search"></i>
-                        </button>
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center justify-content-md-end">
+                        <label class="me-2 text-nowrap"><i class="fas fa-sort me-1"></i>Sort by:</label>
+                        <select class="form-select w-auto" onchange="window.location.href='{{ path('all_reviews') }}?sort=' + this.value + '{% if app.request.query.get('search') %}&search={{ app.request.query.get('search') }}{% endif %}'">
+                            <option value="date_desc" {% if app.request.query.get('sort') == 'date_desc' or app.request.query.get('sort') is null %}selected{% endif %}>Most Recent</option>
+                            <option value="date_asc" {% if app.request.query.get('sort') == 'date_asc' %}selected{% endif %}>Oldest First</option>
+                            <option value="rating_desc" {% if app.request.query.get('sort') == 'rating_desc' %}selected{% endif %}>Rating (High to Low)</option>
+                            <option value="rating_asc" {% if app.request.query.get('sort') == 'rating_asc' %}selected{% endif %}>Rating (Low to High)</option>
+                            <option value="book_asc" {% if app.request.query.get('sort') == 'book_asc' %}selected{% endif %}>Book Title (A-Z)</option>
+                            <option value="book_desc" {% if app.request.query.get('sort') == 'book_desc' %}selected{% endif %}>Book Title (Z-A)</option>
+                        </select>
                     </div>
-                </form>
+                </div>
             </div>
         </div>
     </div>
 
-    {% if reviews|length > 0 %}
-        {% for review in reviews %}
-            <div class="card mb-4">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <div class="d-flex align-items-center">
-                        {% if review.reviewer.profilePicturePath %}
-                            <img src="{{ asset('uploads/profile_pictures/' ~ review.reviewer.profilePicturePath) }}"
-                                 alt="{{ review.reviewer.name }}" class="rounded-circle me-2" style="width: 40px; height: 40px;">
-                        {% else %}
-                            <div class="bg-secondary text-white rounded-circle d-flex justify-content-center align-items-center me-2"
-                                 style="width: 40px; height: 40px;">
-                                {{ review.reviewer.name|first|upper }}
-                            </div>
-                        {% endif %}
-                        <div>
-                            <strong>{{ review.reviewer.name }}</strong> reviewed
-                            <a href="{{ path('book_show', {'id': review.book.id}) }}">
-                                <strong>{{ review.book.title }}</strong>
-                            </a>
-                            <div class="text-warning">
-                                {% for i in 1..5 %}
-                                    {% if i <= review.rating %}
-                                        <i class="fas fa-star"></i>
-                                    {% else %}
-                                        <i class="far fa-star"></i>
-                                    {% endif %}
-                                {% endfor %}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="text-muted">
-                        <small>{{ review.createdAt|date('F j, Y') }}</small>
-                        {% if review.updatedAt %}
-                            <small>(Edited: {{ review.updatedAt|date('F j, Y') }})</small>
-                        {% endif %}
-                    </div>
-                </div>
-                <div class="card-body">
-                    <p>{{ review.reviewText|nl2br }}</p>
-                </div>
-                <div class="card-footer text-end">
-                    {% if is_granted('IS_AUTHENTICATED_FULLY') and (app.user == review.reviewer or is_granted('ROLE_MANAGER')) %}
-                        <a href="{{ path('review_edit', {'id': review.id}) }}" class="btn btn-sm btn-outline-primary">
-                            <i class="fas fa-edit"></i> Edit
-                        </a>
-                        <form method="post" action="{{ path('review_delete', {'id': review.id}) }}" style="display: inline-block"
-                              onsubmit="return confirm('Are you sure you want to delete this review?');">
-                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ review.id) }}">
-                            <button class="btn btn-sm btn-outline-danger">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
-                        </form>
-                    {% endif %}
-                </div>
-            </div>
-        {% endfor %}
+    {% if app.request.query.get('search') %}
+        <div class="alert alert-info mb-4">
+            <i class="fas fa-filter me-2"></i>Showing results for: <strong>{{ app.request.query.get('search') }}</strong>
+            <a href="{{ path('all_reviews', {'sort': app.request.query.get('sort')}) }}" class="ms-2 btn btn-sm btn-outline-info">
+                <i class="fas fa-times me-1"></i>Clear Filter
+            </a>
+        </div>
+    {% endif %}
 
-        <nav aria-label="Page navigation">
+    <!-- Reviews List -->
+    <div class="row">
+        <div class="col">
+            {% for review in reviews %}
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex mb-3">
+                            <div class="me-3">
+                                {% if review.reviewer.profilePicturePath %}
+                                    <img src="{{ asset('uploads/profile_pictures/' ~ review.reviewer.profilePicturePath) }}"
+                                        alt="{{ review.reviewer.name }}" class="rounded-circle" width="60" height="60">
+                                {% else %}
+                                    <div class="bg-secondary text-white rounded-circle d-flex justify-content-center align-items-center"
+                                        style="width: 60px; height: 60px; font-size: 1.5rem;">
+                                        {{ review.reviewer.name|first|upper }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <h5 class="mb-0">
+                                    <a href="{{ path('book_show', {'id': review.book.id}) }}" class="text-decoration-none">
+                                        {{ review.book.title }}
+                                    </a>
+                                </h5>
+                                <div class="text-warning mb-1">
+                                    {% for i in 1..5 %}
+                                        {% if i <= review.rating %}
+                                            <i class="fas fa-star"></i>
+                                        {% else %}
+                                            <i class="far fa-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                <div class="text-muted small">
+                                    Reviewed by {{ review.reviewer.name }} on {{ review.createdAt|date('M d, Y') }}
+                                    {% if review.updatedAt %}
+                                        <span title="Updated on {{ review.updatedAt|date('M d, Y') }}">(edited)</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% if is_granted('IS_AUTHENTICATED_FULLY') and (app.user == review.reviewer or is_granted('ROLE_MANAGER')) %}
+                                <div class="ms-auto">
+                                    <a href="{{ path('review_edit', {'id': review.id}) }}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+                                    <form method="post" action="{{ path('review_delete', {'id': review.id}) }}" style="display: inline-block"
+                                        onsubmit="return confirm('Are you sure you want to delete this review?');">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ review.id) }}">
+                                        <button class="btn btn-sm btn-outline-danger">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button>
+                                    </form>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <p class="card-text">{{ review.reviewText|nl2br }}</p>
+                    </div>
+                </div>
+            {% else %}
+                <div class="alert alert-info text-center py-5">
+                    <i class="fas fa-comment-slash fa-3x mb-3"></i>
+                    <h4>No reviews found</h4>
+                    <p class="mb-0">{% if app.request.query.get('search') %}Try a different search term.{% else %}Be the first to review a book!{% endif %}</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if reviews|length > 0 %}
+        <nav aria-label="Review pagination" class="my-4">
             <ul class="pagination justify-content-center">
-                {% if currentPage > 1 %}
-                    <li class="page-item">
-                        <a class="page-link" href="{{ path('all_reviews', {'page': currentPage - 1, 'sort': app.request.query.get('sort'), 'search': app.request.query.get('search')}) }}">Previous</a>
-                    </li>
-                {% else %}
-                    <li class="page-item disabled">
-                        <span class="page-link">Previous</span>
-                    </li>
+                <!-- First page button -->
+                <li class="page-item {% if currentPage == 1 %}disabled{% endif %}">
+                    <a class="page-link" href="{{ path('all_reviews', {'page': 1, 'sort': app.request.query.get('sort'), 'search': app.request.query.get('search')}) }}" aria-label="First">
+                        <i class="fas fa-angle-double-left"></i>
+                    </a>
+                </li>
+
+                <!-- Previous page button -->
+                <li class="page-item {% if currentPage == 1 %}disabled{% endif %}">
+                    <a class="page-link" href="{{ path('all_reviews', {'page': currentPage > 1 ? currentPage - 1 : 1, 'sort': app.request.query.get('sort'), 'search': app.request.query.get('search')}) }}" aria-label="Previous">
+                        <i class="fas fa-angle-left"></i>
+                    </a>
+                </li>
+
+                <!-- Page numbers -->
+                {% set startPage = max(1, currentPage - 2) %}
+                {% set endPage = min(totalPages, startPage + 4) %}
+                {% if endPage - startPage < 4 and startPage > 1 %}
+                    {% set startPage = max(1, endPage - 4) %}
                 {% endif %}
 
-                {% for i in 1..totalPages %}
-                    <li class="page-item {% if i == currentPage %}active{% endif %}">
+                {% for i in startPage..endPage %}
+                    <li class="page-item {% if currentPage == i %}active{% endif %}">
                         <a class="page-link" href="{{ path('all_reviews', {'page': i, 'sort': app.request.query.get('sort'), 'search': app.request.query.get('search')}) }}">{{ i }}</a>
                     </li>
                 {% endfor %}
 
-                {% if currentPage < totalPages %}
-                    <li class="page-item">
-                        <a class="page-link" href="{{ path('all_reviews', {'page': currentPage + 1, 'sort': app.request.query.get('sort'), 'search': app.request.query.get('search')}) }}">Next</a>
-                    </li>
-                {% else %}
-                    <li class="page-item disabled">
-                        <span class="page-link">Next</span>
-                    </li>
-                {% endif %}
+                <!-- Next page button -->
+                <li class="page-item {% if currentPage == totalPages %}disabled{% endif %}">
+                    <a class="page-link" href="{{ path('all_reviews', {'page': currentPage < totalPages ? currentPage + 1 : totalPages, 'sort': app.request.query.get('sort'), 'search': app.request.query.get('search')}) }}" aria-label="Next">
+                        <i class="fas fa-angle-right"></i>
+                    </a>
+                </li>
+
+                <!-- Last page button -->
+                <li class="page-item {% if currentPage == totalPages %}disabled{% endif %}">
+                    <a class="page-link" href="{{ path('all_reviews', {'page': totalPages, 'sort': app.request.query.get('sort'), 'search': app.request.query.get('search')}) }}" aria-label="Last">
+                        <i class="fas fa-angle-double-right"></i>
+                    </a>
+                </li>
             </ul>
+
+            <!-- Page info text -->
+            <div class="text-center text-muted mt-2">
+                <small>Showing page {{ currentPage }} of {{ totalPages }}</small>
+            </div>
         </nav>
-    {% else %}
-        <div class="alert alert-info">
-            No reviews found. {% if app.request.query.get('search') %}Try a different search term.{% endif %}
-        </div>
     {% endif %}
 </div>
 {% endblock %}
 
 {% block javascripts %}
 <script>
-$(document).ready(function() {
-    $("#review-search-autocomplete").autocomplete({
-        source: function(request, response) {
-            $.ajax({
-                url: "{{ path('review_search_suggestions') }}",
-                dataType: "json",
-                data: {
-                    q: request.term
-                },
-                success: function(data) {
-                    response($.map(data, function(item) {
-                        return {
-                            label: item.value + ' (' + item.type + ')',
-                            value: item.value
-                        };
-                    }));
-                }
-            });
-        },
-        minLength: 2,
-        select: function(event, ui) {
-            $("#review-search-autocomplete").val(ui.item.value);
-            $(this).closest("form").submit();
-            return false;
-        }
-    }).autocomplete("instance")._renderItem = function(ul, item) {
-        // Customize the appearance of suggestion items
-        let icon = 'comment';
-        if (item.label.includes('(book)')) {
-            icon = 'book';
-        } else if (item.label.includes('(reviewer)')) {
-            icon = 'user';
-        }
+    $(document).ready(function() {
+        $("#review-search-autocomplete").autocomplete({
+            source: function(request, response) {
+                $.ajax({
+                    url: "{{ path('review_search_suggestions') }}",
+                    dataType: "json",
+                    data: {
+                        q: request.term
+                    },
+                    success: function(data) {
+                        response($.map(data, function(item) {
+                            return {
+                                label: item.value,
+                                value: item.value,
+                                type: item.type
+                            };
+                        }));
+                    }
+                });
+            },
+            minLength: 2,
+            select: function(event, ui) {
+                $("#review-search-autocomplete").val(ui.item.value);
+                $(this).closest("form").submit();
+                return false;
+            }
+        }).autocomplete("instance")._renderItem = function(ul, item) {
+            // Choose icon based on suggestion type
+            let icon = 'book';
+            if (item.type === 'reviewer') {
+                icon = 'user';
+            } else if (item.type === 'content') {
+                icon = 'comment';
+            }
 
-        return $("<li>")
-            .append("<div><i class='fas fa-" + icon + " me-2'></i>" + item.label + "</div>")
-            .appendTo(ul);
-    };
-});
+            return $("<li>")
+                .append("<div class='p-2'><i class='fas fa-" + icon + " me-2 text-primary'></i>" +
+                       "<span class='fw-bold'>" + item.label + "</span>" +
+                       "<small class='ms-2 text-muted'>(" + item.type + ")</small></div>")
+                .appendTo(ul);
+        };
+    });
 </script>
 {% endblock %}

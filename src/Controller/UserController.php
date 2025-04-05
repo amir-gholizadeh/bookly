@@ -31,7 +31,7 @@ class UserController extends AbstractController
         $page = $request->query->getInt('page', 1);
         $sort = $request->query->get('sort');
         $search = $request->query->get('search');
-        $limit = 10; // Number of books per page
+        $limit = 15; // Number of books per page
 
         $paginator = $bookRepository->findPaginatedBooks($page, $limit, $sort, $search);
 
@@ -59,14 +59,22 @@ class UserController extends AbstractController
     #[Route('/register', name: 'app_register')]
     public function register(Request $request, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager, SluggerInterface $slugger, Security $security, CacheManager $cacheManager, FilterManager $filterManager, LoaderInterface $loader): Response
     {
-        if ($this->getUser()) {
+        // Check if user is logged in
+        $isLoggedIn = null !== $this->getUser();
+        $isAdmin = $this->isGranted('ROLE_ADMIN');
+        $isManager = $this->isGranted('ROLE_MANAGER');
+
+        // Prevent regular users from accessing registration when logged in
+        if ($isLoggedIn && !$isAdmin && !$isManager) {
             $this->addFlash('info', 'Hi '.$this->getUser()->getName().'. You are already logged in. Please logout first.');
 
             return $this->redirectToRoute('main');
         }
 
         $user = new User();
-        $form = $this->createForm(RegistrationFormType::class, $user);
+        $form = $this->createForm(RegistrationFormType::class, $user, [
+            'isAdmin' => $isAdmin, // Only admins can set roles
+        ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -104,30 +112,47 @@ class UserController extends AbstractController
 
                 $user->setProfilePicturePath($newFilename);
             }
-            if ($this->isGranted('ROLE_ADMIN') && $form->has('roles')) {
+
+            // Handle roles assignment based on user permissions
+            if ($isAdmin && $form->has('roles')) {
                 $role = $form->get('roles')->getData();
-                if ('ROLE_MANAGER' === $role) {
-                    $user->setRoles(['ROLE_MANAGER']);
-                }
+                $user->setRoles([$role]);
             } else {
-                // Default role for regular registration
+                // For managers or self-registration, default to ROLE_USER
                 $user->setRoles(['ROLE_USER']);
             }
 
             $entityManager->persist($user);
             $entityManager->flush();
 
-            $this->addFlash('success', 'Registration successful! Welcome!');
+            $this->addFlash('success', 'Registration successful!');
 
-            // Log in the user manually
-            $security->login($user);
+            // Only auto-login if not already logged in
+            if (!$isLoggedIn) {
+                $security->login($user);
+                $this->addFlash('success', 'Welcome!');
+            } else {
+                // For admins/managers creating users
+                if ($isAdmin) {
+                    $this->addFlash('success', 'New user created with role: '.($user->getRoles()[0] ?? 'ROLE_USER'));
+                } else {
+                    $this->addFlash('success', 'New user created with basic user role');
+                }
+            }
 
-            // Redirect to the main page
-            return $this->redirectToRoute('main');
+            // Redirect to appropriate page
+            if ($isAdmin) {
+                return $this->redirectToRoute('admin_users');
+            } elseif ($isManager) {
+                return $this->redirectToRoute('manager_dashboard');
+            } else {
+                return $this->redirectToRoute('main');
+            }
         }
 
         return $this->render('main/register.html.twig', [
             'registrationForm' => $form->createView(),
+            'isAdmin' => $isAdmin,
         ]);
     }
 
@@ -223,9 +248,14 @@ class UserController extends AbstractController
                 $queryBuilder->orderBy('r.createdAt', 'DESC'); // Default sort by most recent
         }
 
-        $totalReviews = count($queryBuilder->getQuery()->getResult());
+        // Count query
+        $countQueryBuilder = clone $queryBuilder;
+        $countQueryBuilder->select('COUNT(r.id)');
+        $totalReviews = $countQueryBuilder->getQuery()->getSingleScalarResult();
+
         $totalPages = ceil($totalReviews / $limit);
 
+        // Get paginated results
         $reviews = $queryBuilder
             ->setFirstResult(($page - 1) * $limit)
             ->setMaxResults($limit)

@@ -1,54 +1,173 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-<div class="container">
-{#    {{ dump(app.flashes) }}#}
-    {% for label, messages in app.flashes %}
-        <div class="alert alert-{{ label }}">
-            {% for message in messages %}
-                <p>{{ message }}</p>
-            {% endfor %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0 text-center">
+                        {% if is_granted('ROLE_ADMIN') %}
+                            Create New User
+                        {% else %}
+                            Register
+                        {% endif %}
+                    </h2>
+                </div>
+
+                <div class="card-body p-4">
+                    {% for label, messages in app.flashes %}
+                        <div class="alert alert-{{ label }} alert-dismissible fade show">
+                            {% for message in messages %}
+                                <p class="mb-0">{{ message }}</p>
+                            {% endfor %}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+
+                    {{ form_start(registrationForm, {'attr': {'class': 'row g-3'}}) }}
+
+                    <div class="col-md-6 mb-3">
+                        {{ form_label(registrationForm.email, 'Email', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                        {{ form_widget(registrationForm.email, {'attr': {'class': 'form-control form-control-lg', 'placeholder': 'Enter your email', 'id': 'inputEmail4'}}) }}
+                        <div class="form-text text-muted">We'll never share your email with anyone else.</div>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        {{ form_label(registrationForm.name, 'Full Name', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                        {{ form_widget(registrationForm.name, {'attr': {'class': 'form-control form-control-lg', 'placeholder': 'Enter your name', 'id': 'inputName'}}) }}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        {{ form_label(registrationForm.plainPassword.first, 'Password', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                        {{ form_widget(registrationForm.plainPassword.first, {'attr': {'class': 'form-control form-control-lg', 'placeholder': 'Create a password', 'id': 'inputPassword4'}}) }}
+                        <div class="form-text text-muted">Use at least 8 characters with letters and numbers.</div>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        {{ form_label(registrationForm.plainPassword.second, 'Confirm Password', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                        {{ form_widget(registrationForm.plainPassword.second, {'attr': {'class': 'form-control form-control-lg', 'placeholder': 'Repeat your password', 'id': 'confirmPassword'}}) }}
+                    </div>
+
+                    <div class="col-12 mb-3">
+                        <div class="form-group">
+                            {{ form_label(registrationForm.profilePicturePath, 'Profile Picture', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-camera"></i></span>
+                                {{ form_widget(registrationForm.profilePicturePath, {'attr': {'class': 'form-control', 'id': 'inputProfilePicture'}}) }}
+                            </div>
+                            <div class="form-text text-muted">Optional: Upload a profile picture.</div>
+                        </div>
+                    </div>
+
+                    {% if isAdmin is defined and isAdmin %}
+                        <div class="col-12 mb-4">
+                            <div class="card border-info">
+                                <div class="card-header bg-info text-white">
+                                    <h5 class="mb-0"><i class="fas fa-user-tag me-2"></i>Assign User Role</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="role-selection p-2">
+                                        {% for radio in registrationForm.roles %}
+                                            <div class="form-check form-check-inline role-option mb-2 me-4">
+                                                <div class="role-card p-3 rounded {% if radio.vars.checked %}active{% endif %}">
+                                                    {{ form_widget(radio, {'attr': {'class': 'form-check-input me-2'}}) }}
+                                                    {{ form_label(radio, null, {'label_attr': {'class': 'form-check-label fw-bold'}}) }}
+                                                    <div class="role-description text-muted small mt-1">
+                                                        {% if 'ROLE_ADMIN' in radio.vars.value %}
+                                                            Full system access with all permissions
+                                                        {% elseif 'ROLE_MANAGER' in radio.vars.value %}
+                                                            Can manage content and regular users
+                                                        {% else %}
+                                                            Standard user access only
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <style>
+                            .role-option .role-card {
+                                border: 1px solid #dee2e6;
+                                transition: all 0.2s ease;
+                                background-color: #f8f9fa;
+                                min-width: 200px;
+                            }
+                            .role-option .role-card:hover {
+                                border-color: #17a2b8;
+                                background-color: #e3f4f6;
+                                cursor: pointer;
+                            }
+                            .role-option .role-card.active {
+                                border-color: #17a2b8;
+                                background-color: #e3f4f6;
+                                box-shadow: 0 0 0 0.2rem rgba(23, 162, 184, 0.25);
+                            }
+                            .role-selection {
+                                display: flex;
+                                flex-wrap: wrap;
+                                gap: 10px;
+                            }
+                        </style>
+
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function() {
+                                const roleCards = document.querySelectorAll('.role-card');
+
+                                roleCards.forEach(card => {
+                                    const radio = card.querySelector('input[type="radio"]');
+
+                                    // Initial state
+                                    if (radio.checked) {
+                                        card.classList.add('active');
+                                    }
+
+                                    // Click on card selects the radio
+                                    card.addEventListener('click', function() {
+                                        radio.checked = true;
+
+                                        // Remove active class from all cards
+                                        roleCards.forEach(c => c.classList.remove('active'));
+
+                                        // Add active class to selected card
+                                        card.classList.add('active');
+                                    });
+                                });
+                            });
+                        </script>
+                    {% endif %}
+
+                    <div class="col-12 mb-3">
+                        <div class="form-check bg-light p-3 rounded">
+                            {{ form_widget(registrationForm.isHuman, {'attr': {'class': 'form-check-input', 'id': 'gridCheck'}}) }}
+                            {{ form_label(registrationForm.isHuman, 'I am not a robot', {'label_attr': {'class': 'form-check-label fw-bold'}}) }}
+                        </div>
+                    </div>
+
+                    <div class="col-12 d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            {% if is_granted('ROLE_ADMIN') or is_granted('ROLE_MANAGER') %}
+                                <i class="fas fa-user-plus me-2"></i>Create User
+                            {% else %}
+                                <i class="fas fa-user-plus me-2"></i>Register
+                            {% endif %}
+                        </button>
+                    </div>
+
+                    {{ form_end(registrationForm) }}
+                </div>
+
+                <div class="card-footer bg-light text-center py-3">
+                    {% if not is_granted('ROLE_ADMIN') and not is_granted('ROLE_MANAGER') %}
+                        Already have an account? <a href="{{ path('app_login') }}" class="text-primary fw-bold">Login here</a>
+                    {% endif %}
+                </div>
+            </div>
         </div>
-    {% endfor %}
-    <h1>Register</h1>
-    {{ form_start(registrationForm, {'attr': {'class': 'row g-3'}}) }}
-
-    <div class="col-md-6">
-        {{ form_label(registrationForm.email, 'Email', {'label_attr': {'class': 'form-label'}}) }}
-        {{ form_widget(registrationForm.email, {'attr': {'class': 'form-control', 'id': 'inputEmail4'}}) }}
     </div>
-
-    <div class="col-md-6">
-        {{ form_label(registrationForm.plainPassword.first, 'Password', {'label_attr': {'class': 'form-label'}}) }}
-        {{ form_widget(registrationForm.plainPassword.first, {'attr': {'class': 'form-control', 'id': 'inputPassword4'}}) }}
-    </div>
-
-    <div class="col-md-6">
-        {{ form_label(registrationForm.plainPassword.second, 'Repeat Password', {'label_attr': {'class': 'form-label'}}) }}
-        {{ form_widget(registrationForm.plainPassword.second, {'attr': {'class': 'form-control', 'id': 'inputPassword4'}}) }}
-    </div>
-
-    <div class="col-12">
-        {{ form_label(registrationForm.name, 'Name', {'label_attr': {'class': 'form-label'}}) }}
-        {{ form_widget(registrationForm.name, {'attr': {'class': 'form-control', 'id': 'inputName'}}) }}
-    </div>
-
-    <div class="col-12">
-        {{ form_label(registrationForm.profilePicturePath, 'Profile Picture', {'label_attr': {'class': 'form-label'}}) }}
-        {{ form_widget(registrationForm.profilePicturePath, {'attr': {'class': 'form-control', 'id': 'inputProfilePicture'}}) }}
-    </div>
-
-    <div class="col-12">
-        <div class="form-check">
-            {{ form_widget(registrationForm.isHuman, {'attr': {'class': 'form-check-input', 'id': 'gridCheck'}}) }}
-            {{ form_label(registrationForm.isHuman, 'I am not a robot', {'label_attr': {'class': 'form-check-label'}}) }}
-        </div>
-    </div>
-
-    <div class="col-12">
-        <button type="submit" class="btn btn-primary">Register</button>
-    </div>
-
-    {{ form_end(registrationForm) }}
 </div>
 {% endblock %}

@@ -1,51 +1,135 @@
 {% extends 'base.html.twig' %}
 
+{% block title %}Add New Book{% endblock %}
+
 {% block body %}
-<div class="container">
-    {% for label, messages in app.flashes %}
-        <div class="alert alert-{{ label }}">
-            {% for message in messages %}
-                <p>{{ message }}</p>
-            {% endfor %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0"><i class="fas fa-book-medical me-2"></i>Add a New Book</h2>
+                </div>
+
+                <div class="card-body p-4">
+                    {% for label, messages in app.flashes %}
+                        <div class="alert alert-{{ label }} alert-dismissible fade show">
+                            {% for message in messages %}
+                                <p class="mb-0">{{ message }}</p>
+                            {% endfor %}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+
+                    {{ form_start(bookForm, {'attr': {'class': 'row g-3'}}) }}
+                        <div class="col-md-6">
+                            <div class="form-floating mb-3">
+                                {{ form_widget(bookForm.title, {'attr': {'class': 'form-control', 'placeholder': 'Book Title'}}) }}
+                                {{ form_label(bookForm.title, 'Book Title') }}
+                                {{ form_errors(bookForm.title) }}
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-floating mb-3">
+                                {{ form_widget(bookForm.author, {'attr': {'class': 'form-control', 'placeholder': 'Author Name'}}) }}
+                                {{ form_label(bookForm.author, 'Author') }}
+                                {{ form_errors(bookForm.author) }}
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-floating mb-3">
+                                {{ form_widget(bookForm.genre, {'attr': {'class': 'form-control', 'placeholder': 'Genre'}}) }}
+                                {{ form_label(bookForm.genre, 'Genre') }}
+                                {{ form_errors(bookForm.genre) }}
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-floating mb-3">
+                                {{ form_widget(bookForm.numberOfPages, {'attr': {'class': 'form-control', 'placeholder': 'Number of Pages'}}) }}
+                                {{ form_label(bookForm.numberOfPages, 'Number of Pages') }}
+                                {{ form_errors(bookForm.numberOfPages) }}
+                            </div>
+                        </div>
+
+                        <div class="col-12 mb-3">
+                            <label class="form-label fw-bold">Book Cover Image</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-image"></i></span>
+                                {{ form_widget(bookForm.coverImagePath, {'attr': {'class': 'form-control', 'id': 'cover-image-upload'}}) }}
+                            </div>
+                            <div id="coverImageHelp" class="form-text">Upload a JPG, PNG or GIF image (max 2MB)</div>
+                            {{ form_errors(bookForm.coverImagePath) }}
+                            <div id="image-preview" class="mt-2 d-none">
+                                <img src="" alt="Preview" class="img-thumbnail" style="max-height: 200px;">
+                            </div>
+                        </div>
+
+                        <div class="col-12 mb-3">
+                            <label class="form-label fw-bold">Book Summary</label>
+                            {{ form_widget(bookForm.summary, {
+                                'attr': {
+                                    'class': 'form-control',
+                                    'rows': 6,
+                                    'placeholder': 'Provide a brief summary of the book...'
+                                }
+                            }) }}
+                            {{ form_errors(bookForm.summary) }}
+                        </div>
+
+                        <div class="col-12 d-grid gap-2 mt-3">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save me-2"></i>Save Book
+                            </button>
+                            <a href="{{ path('main') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Book List
+                            </a>
+                        </div>
+                    {{ form_end(bookForm) }}
+                </div>
+            </div>
         </div>
-    {% endfor %}
-    <h1>Add a New Book</h1>
-    {{ form_start(bookForm, {'attr': {'class': 'row g-3'}}) }}
-
-    <div class="col-md-6">
-        {{ form_label(bookForm.title, 'Title', {'label_attr': {'class': 'form-label'}}) }}
-        {{ form_widget(bookForm.title, {'attr': {'class': 'form-control', 'id': 'inputTitle'}}) }}
     </div>
-
-    <div class="col-md-6">
-        {{ form_label(bookForm.author, 'Author', {'label_attr': {'class': 'form-label'}}) }}
-        {{ form_widget(bookForm.author, {'attr': {'class': 'form-control', 'id': 'inputAuthor'}}) }}
-    </div>
-
-    <div class="col-md-6">
-        {{ form_label(bookForm.numberOfPages, 'Number of Pages', {'label_attr': {'class': 'form-label'}}) }}
-        {{ form_widget(bookForm.numberOfPages, {'attr': {'class': 'form-control', 'id': 'inputNumberOfPages'}}) }}
-    </div>
-
-    <div class="col-12">
-        {{ form_label(bookForm.summary, 'Summary', {'label_attr': {'class': 'form-label'}}) }}
-        {{ form_widget(bookForm.summary, {'attr': {'class': 'form-control', 'id': 'inputSummary', 'rows': 8}}) }}
-    </div>
-
-    <div class="col-12">
-        {{ form_label(bookForm.genre, 'Genre', {'label_attr': {'class': 'form-label'}}) }}
-        {{ form_widget(bookForm.genre, {'attr': {'class': 'form-control', 'id': 'inputGenre'}}) }}
-    </div>
-
-    <div class="col-12">
-        {{ form_label(bookForm.coverImagePath, 'Cover Image', {'label_attr': {'class': 'form-label'}}) }}
-        {{ form_widget(bookForm.coverImagePath, {'attr': {'class': 'form-control', 'id': 'inputCoverImage'}}) }}
-    </div>
-
-    <div class="col-12">
-        <button type="submit" class="btn btn-primary">Add Book</button>
-    </div>
-
-    {{ form_end(bookForm) }}
 </div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Image preview functionality
+        const coverImageUpload = document.getElementById('cover-image-upload');
+        const imagePreview = document.getElementById('image-preview');
+        const previewImg = imagePreview.querySelector('img');
+
+        coverImageUpload.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    previewImg.src = e.target.result;
+                    imagePreview.classList.remove('d-none');
+                }
+
+                reader.readAsDataURL(this.files[0]);
+            } else {
+                imagePreview.classList.add('d-none');
+            }
+        });
+
+        // Character counter for summary
+        const summaryField = document.querySelector('#{{ bookForm.summary.vars.id }}');
+        if (summaryField) {
+            const charCounter = document.createElement('div');
+            charCounter.className = 'form-text text-muted';
+            charCounter.innerHTML = 'Character count: 0';
+            summaryField.parentNode.appendChild(charCounter);
+
+            summaryField.addEventListener('input', function() {
+                charCounter.innerHTML = 'Character count: ' + this.value.length;
+            });
+        }
+    });
+</script>
 {% endblock %}
