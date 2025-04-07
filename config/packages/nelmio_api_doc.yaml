@@ -1,0 +1,66 @@
+nelmio_api_doc:
+    documentation:
+        info:
+            title: Book Review API
+            description: API for managing books and reviews
+            version: 1.0.0
+        components:
+            securitySchemes:
+                Bearer:
+                    type: http
+                    scheme: bearer
+                    bearerFormat: JWT
+        security:
+            - Bearer: []
+        paths:
+            /api/token:
+                post:
+                    tags:
+                        - Authentication
+                    summary: Get JWT token
+                    requestBody:
+                        content:
+                            application/json:
+                                schema:
+                                    type: object
+                                    properties:
+                                        username:
+                                            type: string
+                                        password:
+                                            type: string
+                                    required:
+                                        - username
+                                        - password
+                    responses:
+                        '200':
+                            description: JWT token obtained
+                            content:
+                                application/json:
+                                    schema:
+                                        type: object
+                                        properties:
+                                            token:
+                                                type: string
+                                            refresh_token:
+                                                type: string
+            /api/token/refresh:
+                post:
+                    tags:
+                        - Authentication
+                    summary: Refresh JWT token
+                    requestBody:
+                        content:
+                            application/json:
+                                schema:
+                                    type: object
+                                    properties:
+                                        refresh_token:
+                                            type: string
+                                    required:
+                                        - refresh_token
+                    responses:
+                        '200':
+                            description: JWT token refreshed
+    areas:
+        path_patterns:
+            - ^/api(?!/doc$)

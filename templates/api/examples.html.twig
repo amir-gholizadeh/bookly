@@ -1,0 +1,30 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}API Examples{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1>API Examples</h1>
+
+    <div class="alert alert-info">
+        <strong>Note:</strong> The API requires a valid JWT token for most endpoints. Use the authentication endpoint to obtain a token.
+    </div>
+
+    {% for example in examples %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <strong>{{ example.title }}</strong> - {{ example.method }} {{ example.endpoint }}
+            </div>
+            <div class="card-body">
+                {% if example.request %}
+                    <h5>Request:</h5>
+                    <pre><code class="language-json">{{ example.request }}</code></pre>
+                {% endif %}
+
+                <h5>Response:</h5>
+                <pre><code class="language-json">{{ example.response }}</code></pre>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}
