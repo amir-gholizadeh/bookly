@@ -20,7 +20,10 @@ security:
         api:
             pattern: ^/api
             stateless: true
+            entry_point: jwt
             jwt: ~
+            refresh_jwt:
+                check_path: /api/token/refresh
             json_login:
                 check_path: api_login_check
                 username_path: username
