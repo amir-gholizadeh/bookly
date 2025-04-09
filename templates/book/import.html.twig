@@ -1,0 +1,79 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Import Books{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white py-3">
+            <h2 class="mb-0"><i class="fas fa-cloud-download-alt me-2"></i>Import Books</h2>
+        </div>
+
+        <div class="card-body">
+            <form action="{{ path('book_import') }}" method="get" class="mb-4">
+                <div class="input-group">
+                    <input type="text" name="q" class="form-control" placeholder="Search by title or author..."
+                           value="{{ searchQuery }}" required>
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fas fa-search me-1"></i> Search
+                    </button>
+                </div>
+                <div class="form-text">Search for books to import from Google Books</div>
+            </form>
+
+            {% if searchResults is defined and searchResults|length > 0 %}
+                <h4 class="mb-3">Search Results</h4>
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                    {% for book in searchResults %}
+                        <div class="col">
+                            <div class="card h-100">
+                                <div class="row g-0">
+                                    <div class="col-4 text-center p-2">
+                                        {% if book.imageLinks.thumbnail %}
+                                            <img src="{{ book.imageLinks.thumbnail }}"
+                                                 alt="{{ book.title }}" class="img-fluid rounded">
+                                        {% else %}
+                                            <img src="{{ asset('uploads/cover_images/default_cover.jpg') }}"
+                                                 alt="Default Cover" class="img-fluid rounded">
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-8">
+                                        <div class="card-body">
+                                            <h5 class="card-title text-truncate" title="{{ book.title }}">
+                                                {{ book.title }}
+                                            </h5>
+                                            <p class="card-text text-muted mb-2">{{ book.authors }}</p>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <small class="text-muted">
+                                                    {% if book.pageCount > 0 %}
+                                                        {{ book.pageCount }} pages
+                                                    {% else %}
+                                                        Page count unknown
+                                                    {% endif %}
+                                                </small>
+                                                <span class="badge bg-secondary">
+                                                    {{ book.categories[0] }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-footer bg-white">
+                                    <a href="{{ path('book_import_details', {'googleBooksId': book.id}) }}"
+                                       class="btn btn-sm btn-outline-primary w-100">
+                                        <i class="fas fa-info-circle me-1"></i> View Details
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% elseif searchQuery is defined and searchQuery is not empty %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>No books found matching your search criteria.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

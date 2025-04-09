@@ -1,0 +1,77 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Book Import Details{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white py-3">
+            <h2 class="mb-0">
+                <i class="fas fa-book me-2"></i>{{ bookDetails.title }}
+            </h2>
+        </div>
+
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3 text-center mb-4 mb-md-0">
+                    {% if bookDetails.imageLinks.thumbnail %}
+                        <img src="{{ bookDetails.imageLinks.thumbnail }}"
+                             alt="{{ bookDetails.title }}" class="img-fluid rounded shadow">
+                    {% else %}
+                        <img src="{{ asset('uploads/cover_images/default_cover.jpg') }}"
+                             alt="Default Cover" class="img-fluid rounded shadow">
+                    {% endif %}
+                </div>
+                <div class="col-md-9">
+                    <h3>{{ bookDetails.title }}</h3>
+                    <p class="lead mb-1">By {{ bookDetails.authors }}</p>
+
+                    <div class="mb-3">
+                        <span class="badge bg-secondary me-2">{{ bookDetails.categories[0] }}</span>
+                        {% if bookDetails.publisher %}
+                            <span class="badge bg-info me-2">{{ bookDetails.publisher }}</span>
+                        {% endif %}
+                        {% if bookDetails.publishedDate %}
+                            <span class="badge bg-dark">{{ bookDetails.publishedDate }}</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        {% if bookDetails.pageCount > 0 %}
+                            <span class="text-muted me-3">
+                                <i class="fas fa-file-alt me-1"></i> {{ bookDetails.pageCount }} pages
+                            </span>
+                        {% endif %}
+                        {% if bookDetails.language %}
+                            <span class="text-muted">
+                                <i class="fas fa-language me-1"></i> {{ bookDetails.language|upper }}
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <h5 class="mt-4 mb-2">Description</h5>
+                    <div class="p-3 bg-light rounded">
+                        {% if bookDetails.description %}
+                            {{ bookDetails.description|raw }}
+                        {% else %}
+                            <p class="text-muted">No description available.</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="mt-4">
+                        <form action="{{ path('book_import_save') }}" method="post">
+                            <input type="hidden" name="google_books_id" value="{{ bookDetails.id }}">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-plus-circle me-1"></i> Import Book
+                            </button>
+                            <a href="{{ path('book_import') }}" class="btn btn-outline-secondary ms-2">
+                                <i class="fas fa-arrow-left me-1"></i> Back to Search
+                            </a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
